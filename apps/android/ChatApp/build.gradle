@@ -4,7 +4,7 @@ plugins {
 
 // Path to local QNN SDK.
 // Download QNN SDK from https://qpm.qualcomm.com/#/main/tools/details/qualcomm_ai_engine_direct
-def qnnSDKLocalPath="<Path to local installed QNN SDK root>"
+def qnnSDKLocalPath="/Users/xinran/Desktop/capstone/qnn/2.31.0.250130"
 
 // List of model assets
 def models = ["llama3_2_3b"]
