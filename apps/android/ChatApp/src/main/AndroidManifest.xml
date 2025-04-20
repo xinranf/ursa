@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
+        android:name="com.chatgptlite.wanted.helpers.BaseApplication"
         android:largeHeap="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,18 +16,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatApp">
-        <activity
-            android:name="com.quicinc.chatapp.MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+<!--        <activity-->
+<!--            android:name="com.quicinc.chatapp.MainActivity"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
+
+<!--        <activity-->
+<!--            android:name="com.quicinc.chatapp.Conversation"-->
+<!--            android:parentActivityName="com.quicinc.chatapp.MainActivity" >-->
+<!--        </activity>-->
 
         <activity
-            android:name="com.quicinc.chatapp.Conversation"
-            android:parentActivityName="com.quicinc.chatapp.MainActivity" >
+            android:name="com.chatgptlite.wanted.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ChatApp"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <uses-native-library
