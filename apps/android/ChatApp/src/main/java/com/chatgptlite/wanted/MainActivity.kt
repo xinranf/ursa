@@ -8,9 +8,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.system.Os
 import android.util.Log
 import android.view.View
-import android.widget.Button
+import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -43,6 +45,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.chatgptlite.wanted.data.whisper.asr.IRecorderListener
 import com.chatgptlite.wanted.data.whisper.asr.IWhisperListener
 import com.chatgptlite.wanted.data.whisper.asr.Recorder
@@ -64,8 +68,12 @@ import com.chatgptlite.wanted.ui.settings.terminal.TerminalViewModel
 import com.chatgptlite.wanted.ui.settings.video.VideoCamSettingsViewModel
 import com.chatgptlite.wanted.ui.settings.video.VideoStreamingSetting
 import com.chatgptlite.wanted.ui.theme.ChatGPTLiteTheme
-import com.quicinc.chatapp.Conversation
+import com.quicinc.chatapp.ChatMessage
+import com.quicinc.chatapp.GenieWrapper
+import com.quicinc.chatapp.MessageSender
+import com.quicinc.chatapp.Message_RecyclerViewAdapter
 import com.quicinc.chatapp.R
+import com.quicinc.chatapp.StringCallback
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.map
@@ -73,16 +81,25 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    companion object {
+        init {
+            System.loadLibrary("chatapp")
+        }
+    }
     private val mainViewModel: MainViewModel by viewModels()
     private val TAG = "MainActivity"
     private val micVisibleState = mutableStateOf(false)
 
     var text = mutableStateOf("")
+    var genieResponse = mutableStateOf("")
     private val isForegroundRecording = mutableStateOf(false)
+    lateinit var genieWrapper: GenieWrapper
 
     private val keywordReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -100,11 +117,6 @@ class MainActivity : ComponentActivity() {
     private fun processWhisperCommand(command: String, addr: String, port: String) {
         val TAG = "processWhisperCommand"
         val textToSend = when {
-//            command.contains("forward", ignoreCase = true) -> "python3 drive_forward.py"
-//            command.contains("backward", ignoreCase = true) -> "python3 drive_backward.py"
-//            command.contains("left", ignoreCase = true) -> "python3 drive_left.py"
-//            command.contains("right", ignoreCase = true) -> "python3 drive_right.py"
-//            command.contains("base", ignoreCase = true) -> "python3 return_to_base.py"
             command.contains("forward", ignoreCase = true) -> "ros2 run drive_pkg drive_publisher –ros-args -p x:=1"
             command.contains("backward", ignoreCase = true) -> "ros2 run drive_pkg drive_publisher –ros-args -p x:=-1"
             command.contains("left", ignoreCase = true) ->"ros2 run drive_pkg drive_publisher –ros-args -p y:=1"
@@ -154,9 +166,19 @@ class MainActivity : ComponentActivity() {
                     text.value = result ?: ""
 
                     result?.let {
+                        genieResponse.value = ""
+
+                        getGenieResponse(it) { responseToken ->
+                            // Append each token to genieResponse
+                            runOnUiThread {
+                                genieResponse.value += responseToken
+                                Log.d("MainActivity", "Genie response so far: $genieResponse")
+                            }
+                        }
+
                         val addr = "10.0.0.120"
                         val port = "8000"
-                        processWhisperCommand(it, addr, port)
+//                        processWhisperCommand(it, addr, port)
                     }
                 }
 
@@ -266,12 +288,25 @@ class MainActivity : ComponentActivity() {
         Log.i("chatbackend", "copied from" + inputFilePath)
     }
 
+    fun getGenieResponse(prompt: String, onResponse: (String) -> Unit) {
+        genieWrapper.getResponseForPrompt(prompt, object : StringCallback {
+            override fun onNewString(str: String?) {
+                str?.let {
+                    Log.d("GenieResponse", "Received token: $it")
+                    onResponse(it)
+                }
+            }
+        })
+    }
+
+
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        lateinit var htpExtConfigPath: Path
         try {
             // Get SoC model from build properties
             // As of now, only Snapdragon Gen 3 and 8 Elite is supported.
@@ -305,7 +340,7 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
                 finish()
             }
-            val htpExtConfigPath = Paths.get(
+            htpExtConfigPath = Paths.get(
                 externalDir, "htp_config",
                 supportedSocModel[socModel]
             )
@@ -324,7 +359,50 @@ class MainActivity : ComponentActivity() {
         }
 
 
+        val messages = ArrayList<ChatMessage>(1000)
 
+        val cWelcomeMessage = "Hi! How can I help you?"
+        val cConversationActivityKeyHtpConfig = htpExtConfigPath.toString()
+        val cConversationActivityKeyModelName = "llama3_2_3b"
+
+            try {
+                // Make QNN libraries discoverable
+                val nativeLibPath = applicationContext.applicationInfo.nativeLibraryDir
+                Os.setenv("ADSP_LIBRARY_PATH", nativeLibPath, true)
+                Os.setenv("LD_LIBRARY_PATH", nativeLibPath, true)
+
+                // Get information from MainActivity regarding
+                //  - Model to run
+                //  - HTP config to use
+//                val bundle = savedInstanceState
+//                if (bundle == null) {
+//                    Log.e("ChatApp", "Error getting additional info from bundle.")
+//                    Toast.makeText(
+//                        this,
+//                        "Unexpected error observed. Exiting app.",
+//                        Toast.LENGTH_LONG
+//                    ).show()
+//                    finish()
+//                }
+
+                val htpExtensionsDir = cConversationActivityKeyHtpConfig
+                val modelName = cConversationActivityKeyModelName
+                val externalCacheDir = this.externalCacheDir!!.absolutePath.toString()
+                val modelDir = Paths.get(externalCacheDir, "models", modelName).toString()
+
+                // Load Model
+                genieWrapper = GenieWrapper(modelDir, htpExtensionsDir)
+                Log.i("Chatbackend", "$modelName Loaded.")
+            } catch (e: java.lang.Exception) {
+                Log.e("ChatApp", "Error during conversation with Chatbot: $e")
+                Toast.makeText(this, "Unexpected error observed. Exiting app.", Toast.LENGTH_SHORT)
+                    .show()
+                finish()
+            }
+
+//        getGenieResponse("test message") { responseToken ->
+//            Log.d("Chatbackend", "Genie response: $responseToken")
+//        }
 
 
         //AudioService.start(this)
@@ -407,6 +485,7 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         MicPopup(
                                             text = text,
+                                            genieResponse = genieResponse,
                                             animationFrames = animationFrames
                                         )
                                     }
@@ -555,6 +634,7 @@ fun DefaultPreview() {
 @Composable
 fun MicPopup(
     text: MutableState<String>,
+    genieResponse: MutableState<String>,
     animationFrames: List<Int>, // List of drawable resource IDs
 ) {
     val currentFrameIndex = remember { mutableStateOf(0) }
@@ -602,6 +682,21 @@ fun MicPopup(
                     fontSize = 12.sp,
                     color = Color.White // White text
                 )
+
+                if (genieResponse.value.isNotBlank()) {
+                    Text(
+                        text = genieResponse.value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(12.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))

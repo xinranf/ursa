@@ -42,10 +42,10 @@
             </intent-filter>
         </activity>
 
-                <activity
-                    android:name="com.quicinc.chatapp.Conversation"
-                    android:parentActivityName="com.chatgptlite.wanted.MainActivity" >
-                </activity>
+<!--                <activity-->
+<!--                    android:name="com.quicinc.chatapp.Conversation"-->
+<!--                    android:parentActivityName="com.chatgptlite.wanted.MainActivity" >-->
+<!--                </activity>-->
 
         <uses-native-library
             android:name="libadsprpc.so"
