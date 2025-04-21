@@ -1,96 +1,79 @@
 package com.chatgptlite.wanted
 
+//import com.chatgptlite.wanted.ui.conversations.components.startBackgroundRecorder
+
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.media.Image
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ControlCamera
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.chatgptlite.wanted.ui.NavRoute
-import com.chatgptlite.wanted.ui.NavRoute.ROVER_SETTINGS
-import com.chatgptlite.wanted.ui.common.AppBar
-import com.chatgptlite.wanted.ui.common.AppScaffold
-import com.chatgptlite.wanted.ui.settings.rover.SettingsScreen
-import com.chatgptlite.wanted.ui.theme.ChatGPTLiteTheme
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
-import androidx.compose.ui.Alignment
-
-import com.chatgptlite.wanted.ui.settings.advance.AdvanceViewModel
-import com.chatgptlite.wanted.ui.settings.advance.AdvanceScreen
-import com.chatgptlite.wanted.ui.settings.rover.RoverSettingsViewModel
-import com.chatgptlite.wanted.ui.settings.video.VideoCamSettingsViewModel
-import com.chatgptlite.wanted.ui.settings.video.VideoStreamingSetting
-import com.chatgptlite.wanted.ui.settings.occupancy.Occupancy
-import com.chatgptlite.wanted.ui.settings.occupancy.OccupancyViewModel
-import com.chatgptlite.wanted.ui.settings.rover.TelemetryScreen
-import com.chatgptlite.wanted.ui.settings.rover.TelemetryViewModel
-import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material3.AlertDialogDefaults.containerColor
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment.Companion.BottomCenter
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.BeyondBoundsLayout
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.ResolvedTextDirection
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.chatgptlite.wanted.data.whisper.asr.IRecorderListener
 import com.chatgptlite.wanted.data.whisper.asr.IWhisperListener
 import com.chatgptlite.wanted.data.whisper.asr.Recorder
 import com.chatgptlite.wanted.data.whisper.asr.Whisper
 import com.chatgptlite.wanted.data.whisper.utils.WaveUtil
-import com.chatgptlite.wanted.services.AudioService
+import com.chatgptlite.wanted.helpers.sendMessage
 import com.chatgptlite.wanted.services.getFilePath
-//import com.chatgptlite.wanted.ui.conversations.components.startBackgroundRecorder
+import com.chatgptlite.wanted.ui.NavRoute
+import com.chatgptlite.wanted.ui.settings.advance.AdvanceScreen
+import com.chatgptlite.wanted.ui.settings.advance.AdvanceViewModel
+import com.chatgptlite.wanted.ui.settings.occupancy.Occupancy
+import com.chatgptlite.wanted.ui.settings.occupancy.OccupancyViewModel
+import com.chatgptlite.wanted.ui.settings.rover.RoverSettingsViewModel
+import com.chatgptlite.wanted.ui.settings.rover.SettingsScreen
+import com.chatgptlite.wanted.ui.settings.rover.TelemetryScreen
+import com.chatgptlite.wanted.ui.settings.rover.TelemetryViewModel
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalScreen
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalViewModel
-import com.chatgptlite.wanted.helpers.sendMessage
-import androidx.compose.ui.res.painterResource
-
-import kotlinx.coroutines.delay
+import com.chatgptlite.wanted.ui.settings.video.VideoCamSettingsViewModel
+import com.chatgptlite.wanted.ui.settings.video.VideoStreamingSetting
+import com.chatgptlite.wanted.ui.theme.ChatGPTLiteTheme
+import com.quicinc.chatapp.Conversation
+import com.quicinc.chatapp.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import com.quicinc.chatapp.R
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.nio.file.Paths
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -230,15 +213,118 @@ class MainActivity : ComponentActivity() {
         sendBroadcast(intent)
     }
 
+    /**
+     * copyAssetsDir: Copies provided assets to output path
+     *
+     * @param inputAssetRelPath relative path to asset from asset root
+     * @param outputPath        output path to copy assets to
+     * @throws IOException
+     * @throws NullPointerException
+     */
+    @Throws(IOException::class, NullPointerException::class)
+    fun copyAssetsDir(inputAssetRelPath: String?, outputPath: String?) {
+        val outputAssetPath = File(Paths.get(outputPath, inputAssetRelPath).toString())
+
+        val subAssetList = this.assets.list(inputAssetRelPath!!)
+        if (subAssetList!!.size == 0) {
+            // If file already present, skip copy.
+            if (!outputAssetPath.exists()) {
+                copyFile(inputAssetRelPath, outputAssetPath)
+            }
+            return
+        }
+
+        // Input asset is a directory, create directory if not present already.
+        if (!outputAssetPath.exists()) {
+            outputAssetPath.mkdirs()
+        }
+        for (subAssetName in subAssetList) {
+            // Copy content of sub-directory
+            val input_sub_asset_path = Paths.get(inputAssetRelPath, subAssetName).toString()
+            // NOTE: Not to modify output path, relative asset path is being updated.
+            copyAssetsDir(input_sub_asset_path, outputPath)
+        }
+    }
+
+    /**
+     * copyFile: Copies provided input file asset into output asset file
+     *
+     * @param inputFilePath   relative file path from asset root directory
+     * @param outputAssetFile output file to copy input asset file into
+     * @throws IOException
+     */
+    @Throws(IOException::class)
+    fun copyFile(inputFilePath: String?, outputAssetFile: File?) {
+        val `in` = this.assets.open(inputFilePath!!)
+        val out: OutputStream = FileOutputStream(outputAssetFile)
+
+        val buffer = ByteArray(1024 * 1024)
+        var read: Int
+        while ((`in`.read(buffer).also { read = it }) != -1) {
+            out.write(buffer, 0, read)
+        }
+        Log.i("chatbackend", "copied from" + inputFilePath)
+    }
+
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Register the receiver to listen for keyword detection
-        //val filter = IntentFilter("com.chatgptlite.wanted.ACTION_KEYWORD_DETECTED")
-        //registerReceiver(keywordReceiver, filter)
+        try {
+            // Get SoC model from build properties
+            // As of now, only Snapdragon Gen 3 and 8 Elite is supported.
+            val supportedSocModel = HashMap<String, String>()
+            supportedSocModel.putIfAbsent("SM8750", "qualcomm-snapdragon-8-elite.json")
+            supportedSocModel.putIfAbsent("SM8650", "qualcomm-snapdragon-8-gen3.json")
+            supportedSocModel.putIfAbsent("QCS8550", "qualcomm-snapdragon-8-gen2.json")
+
+            val socModel = Build.SOC_MODEL
+            if (!supportedSocModel.containsKey(socModel)) {
+                val errorMsg =
+                    "Unsupported device. Please ensure you have one of the following device to run the ChatApp: $supportedSocModel"
+                Log.e("ChatApp", errorMsg)
+                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+                finish()
+            }
+
+            // Copy assets to External cache
+            //  - <assets>/models
+            //      - has list of models with tokenizer.json, genie-config.json and model binaries
+            //  - <assets>/htp_config/
+            //      - has SM8750.json and SM8650.json and picked up according to device SOC Model at runtime.
+            val externalDir = externalCacheDir!!.absolutePath
+            try {
+                // Copy assets to External cache if not already present
+                copyAssetsDir("models", externalDir.toString())
+                copyAssetsDir("htp_config", externalDir.toString())
+            } catch (e: IOException) {
+                val errorMsg = "Error during copying model asset to external storage: $e"
+                Log.e("ChatApp", errorMsg)
+                Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
+                finish()
+            }
+            val htpExtConfigPath = Paths.get(
+                externalDir, "htp_config",
+                supportedSocModel[socModel]
+            )
+//                val intent = Intent(this@MainActivity, Conversation::class.java)
+//                intent.putExtra(
+//                    Conversation.cConversationActivityKeyHtpConfig,
+//                    htpExtConfigPath.toString()
+//                )
+//                intent.putExtra(Conversation.cConversationActivityKeyModelName, "llama3_2_3b")
+//                startActivity(intent)
+        } catch (e: java.lang.Exception) {
+            val errorMsg = "Unexpected error occurred while running ChatApp:$e"
+            Log.e("ChatApp", errorMsg)
+            Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+            finish()
+        }
+
+
+
 
 
         //AudioService.start(this)
