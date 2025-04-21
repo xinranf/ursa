@@ -32,6 +32,12 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.chatgptlite.wanted.MainViewModel
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+
 class RoverSettingsViewModel(application: Application) : AndroidViewModel(application) {
 
     // MutableState for x, y, z coordinates, velocity, and heading
@@ -41,7 +47,7 @@ class RoverSettingsViewModel(application: Application) : AndroidViewModel(applic
     var linear_velocity = MutableStateFlow<String?>("-1000")
     var angular_velocity = MutableStateFlow<String?>("-1000")
     var heading = MutableStateFlow<String?>("0")
-    var battery = MutableStateFlow<String?>("0")
+    var battery = MutableStateFlow<Int>(0)
     private val DEFAULT_IPADDRESS = "10.0.0.120"
     private val DEFAULT_PORT = "8000"
     private val CONCAT = "ros2 topic echo "
@@ -62,6 +68,18 @@ class RoverSettingsViewModel(application: Application) : AndroidViewModel(applic
 
     private val _messageResult = MutableStateFlow<String?>(null)
     val messageResult: StateFlow<String?> = _messageResult.asStateFlow()
+
+    private val _roverState = MutableStateFlow("Executing")
+    val roverState: StateFlow<String> = _roverState
+
+    // Function to sync with MainViewModel
+    fun syncWithMainViewModel(mainViewModel: MainViewModel) {
+        viewModelScope.launch {
+            mainViewModel.roverStateFlow.collectLatest { newState ->
+                _roverState.value = newState // Update when MainViewModel emits new state
+            }
+        }
+    }
 
     //Video Feed
     fun receiveFeed(ipAddress: String, port: String, route: String) {
@@ -381,9 +399,9 @@ class RoverSettingsViewModel(application: Application) : AndroidViewModel(applic
                 val batteryPercentage = convertVoltageToPercentage(voltage)
 
                 battery.value = if (batteryPercentage != null) {
-                    "$batteryPercentage%"
+                    batteryPercentage
                 } else {
-                    "Low Battery"
+                    0
                 }
 
             } catch (e: JSONException) {

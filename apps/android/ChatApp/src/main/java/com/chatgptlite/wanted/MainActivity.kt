@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ControlCamera
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -61,6 +64,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment.Companion.BottomCenter
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.BeyondBoundsLayout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -77,10 +82,15 @@ import com.chatgptlite.wanted.services.getFilePath
 //import com.chatgptlite.wanted.ui.conversations.components.startBackgroundRecorder
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalScreen
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalViewModel
+import com.chatgptlite.wanted.helpers.sendMessage
+import androidx.compose.ui.res.painterResource
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.*
-import com.chatgptlite.wanted.helpers.sendMessage
-
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import com.quicinc.chatapp.R
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -107,11 +117,17 @@ class MainActivity : ComponentActivity() {
     private fun processWhisperCommand(command: String, addr: String, port: String) {
         val TAG = "processWhisperCommand"
         val textToSend = when {
-            command.contains("forward", ignoreCase = true) -> "python3 drive_forward.py"
-            command.contains("backward", ignoreCase = true) -> "python3 drive_backward.py"
-            command.contains("left", ignoreCase = true) -> "python3 drive_left.py"
-            command.contains("right", ignoreCase = true) -> "python3 drive_right.py"
-            command.contains("base", ignoreCase = true) -> "python3 return_to_base.py"
+//            command.contains("forward", ignoreCase = true) -> "python3 drive_forward.py"
+//            command.contains("backward", ignoreCase = true) -> "python3 drive_backward.py"
+//            command.contains("left", ignoreCase = true) -> "python3 drive_left.py"
+//            command.contains("right", ignoreCase = true) -> "python3 drive_right.py"
+//            command.contains("base", ignoreCase = true) -> "python3 return_to_base.py"
+            command.contains("forward", ignoreCase = true) -> "ros2 run drive_pkg drive_publisher –ros-args -p x:=1"
+            command.contains("backward", ignoreCase = true) -> "ros2 run drive_pkg drive_publisher –ros-args -p x:=-1"
+            command.contains("left", ignoreCase = true) ->"ros2 run drive_pkg drive_publisher –ros-args -p y:=1"
+            command.contains("right", ignoreCase = true) -> "ros2 run drive_pkg drive_publisher –ros-args -p y:=-1"
+            command.contains("base", ignoreCase = true) -> "ros2 topic pub /goal_pose geometry_msgs/PoseStamped \"{header: {stamp: {sec: 0}, frame_id: 'map'}, pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {w: 1.0}}}\" —once"
+
             else -> {
                 Log.d(TAG, "Command not recognized: $command")
                 return
@@ -122,6 +138,7 @@ class MainActivity : ComponentActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                mainViewModel.setRoverState("Executing") // Broadcast state
                 val response = sendMessage(addr, port, textToSend)
                 if (response.isSuccessful) {
                     Log.d(TAG, "Command successfully executed: $textToSend")
@@ -143,45 +160,48 @@ class MainActivity : ComponentActivity() {
         micVisibleState.value = true
 
         val whisper = Whisper(this).apply {
-                loadModel(modelPath, vocabPath, false)
-                setListener(object : IWhisperListener {
-                    override fun onUpdateReceived(message: String?) {
-                        Log.d("foreground", "onUpdateReceived: $message")
+            loadModel(modelPath, vocabPath, false)
+            setListener(object : IWhisperListener {
+                override fun onUpdateReceived(message: String?) {
+                    Log.d("foreground", "onUpdateReceived: $message")
+                }
+
+                override fun onResultReceived(result: String?) {
+                    Log.d("foreground", "onResultReceived: $result")
+                    text.value = result ?: ""
+
+                    result?.let {
+                        val addr = "10.0.0.120"
+                        val port = "8000"
+                        processWhisperCommand(it, addr, port)
                     }
+                }
 
-                    override fun onResultReceived(result: String?) {
-                        Log.d("foreground", "onResultReceived: $result")
-                        text.value = result ?: ""
-
-                        result?.let {
-                            val addr = "10.0.0.120"
-                            val port = "8000"
-                            // processWhisperCommand(it, addr, port)
-                        }
-                    }
-
-                })
+            })
         }
 
         val waveFilePath = getFilePath(this, WaveUtil.RECORDING_FILE)
         val record = Recorder(this).apply {
-                setListener(object : IRecorderListener {
-                    override fun onUpdateReceived(message: String) {
-                        Log.d("foreground", "onUpdateReceived: $message")
-                        if (message.contains("done")) {
-                            Log.d("foreground", "start translation")
-                            whisper.setFilePath(waveFilePath)
-                            whisper.setAction(Whisper.ACTION_TRANSCRIBE)
-                            whisper.start()
-                        }
-                        Log.d("foreground", "${message.contains("done")} $message ${Whisper.MSG_PROCESSING_DONE}")
+            setListener(object : IRecorderListener {
+                override fun onUpdateReceived(message: String) {
+                    Log.d("foreground", "onUpdateReceived: $message")
+                    if (message.contains("done")) {
+                        Log.d("foreground", "start translation")
+                        whisper.setFilePath(waveFilePath)
+                        whisper.setAction(Whisper.ACTION_TRANSCRIBE)
+                        whisper.start()
                     }
+                    Log.d(
+                        "foreground",
+                        "${message.contains("done")} $message ${Whisper.MSG_PROCESSING_DONE}"
+                    )
+                }
 
-                    override fun onDataReceived(samples: FloatArray?) {
-                        Log.d("foreground", "onDataReceived: $samples")
-                    }
+                override fun onDataReceived(samples: FloatArray?) {
+                    Log.d("foreground", "onDataReceived: $samples")
+                }
 
-                })
+            })
         }
         record.setFilePath(waveFilePath)
         record.start()
@@ -194,7 +214,7 @@ class MainActivity : ComponentActivity() {
                     Log.d("foreground", "Recorder stopped. Restarting background recorder...")
                     isForegroundRecording.value = true
                     updateForegroundRecordingSignal(false)
-                    delay(5000)
+                    delay(10000) // how long the popup will stay
                     micVisibleState.value = false
                     text.value = ""
                     break
@@ -221,7 +241,6 @@ class MainActivity : ComponentActivity() {
         //registerReceiver(keywordReceiver, filter)
 
 
-
         //AudioService.start(this)
         setContentView(
             ComposeView(this).apply {
@@ -233,8 +252,6 @@ class MainActivity : ComponentActivity() {
                     val bottomNavItems = listOf(
                         NavRoute.VIDEO_STREAM,
                         NavRoute.ROVER_SETTINGS,
-//                        NavRoute.OCCUPANCY,
-//                        NavRoute.TELEMETRY
                         NavRoute.ADVANCE
                     )
 
@@ -280,33 +297,38 @@ class MainActivity : ComponentActivity() {
                                             tint = MaterialTheme.colorScheme.primary
                                         )
                                     }
+                                }
 
-                                    // Show TranslucentMicButton only when micVisibleState is true
-                                    if (micVisibleState.value) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0f)), // Slight background blur effect
-                                            contentAlignment = Alignment.BottomCenter
-                                        ) {
-                                            TranslucentMicButton(
-                                                text = text,
-                                                isVisible = micVisibleState,
-                                                onClick = {
-                                                    Log.d("TranslucentMicButton", "Mic button clicked! Hiding overlay.")
-                                                    micVisibleState.value = false // Hide when clicked
-                                                }
-                                            )
-                                        }
+                                val animationFrames = listOf(
+                                    R.drawable.mic_img_1, // Replace with your actual drawable resources
+                                    R.drawable.mic_img_2,
+                                    R.drawable.mic_img_3,
+                                    R.drawable.mic_img_4,
+                                    R.drawable.mic_img_5,
+                                    R.drawable.mic_img_6,
+                                    R.drawable.mic_img_7,
+                                    R.drawable.mic_img_8,
+                                    R.drawable.mic_img_9,
+                                    R.drawable.mic_img_10,
+                                    R.drawable.mic_img_11,
+                                    R.drawable.mic_img_12
+                                )
+
+                                if (micVisibleState.value) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.BottomCenter // Ensures it appears at the bottom
+                                    ) {
+                                        MicPopup(
+                                            text = text,
+                                            animationFrames = animationFrames
+                                        )
                                     }
                                 }
+
                             }
                         ) { innerPadding ->
                             Surface(
-                                //modifier = Modifier.padding(innerPadding),
-//                                modifier = Modifier
-//                                    .fillMaxSize()
-//                                    .padding(innerPadding),
                                 color = MaterialTheme.colorScheme.background
                             ) {
                                 // NavHost for managing navigation
@@ -316,12 +338,14 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     composable(NavRoute.HOME) {
                                         SettingsScreen(
+                                            mainViewModel = mainViewModel,
                                             viewModel = viewModel<RoverSettingsViewModel>(),
                                             onBackPressed = { navController.navigateUp() }
                                         )
                                     }
                                     composable(NavRoute.ROVER_SETTINGS) {
                                         SettingsScreen(
+                                            mainViewModel = mainViewModel,
                                             viewModel = viewModel<RoverSettingsViewModel>(),
                                             onBackPressed = { navController.navigateUp() }
                                         )
@@ -344,7 +368,7 @@ class MainActivity : ComponentActivity() {
                                             onBackPressed = { navController.navigateUp() }
                                         )
                                     }
-                                    composable(NavRoute.ADVANCE){
+                                    composable(NavRoute.ADVANCE) {
                                         AdvanceScreen(
                                             viewModel<AdvanceViewModel>(),
                                             onBackPressed = { navController.navigateUp() },
@@ -379,19 +403,24 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
-
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController, items: List<String>) {
-    NavigationBar {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp
+    ) {
+        val currentRoute by navController.currentBackStackEntryFlow
+            .map { it?.destination?.route ?: "Status" }
+            .collectAsState(initial = "Status")
         items.forEach { route ->
+            val isSelected = currentRoute == route
+            Log.d("navbar", "$currentRoute, $route, $isSelected");
             NavigationBarItem(
-                selected = currentRoute == route,
+                selected = isSelected,
                 onClick = {
-                    if (currentRoute != route) {
+                    if (!isSelected) {
                         navController.navigate(route) {
                             launchSingleTop = true
                             restoreState = true
@@ -399,19 +428,36 @@ fun BottomNavigationBar(navController: NavHostController, items: List<String>) {
                     }
                 },
                 icon = {
-                    when (route) {
-                        NavRoute.VIDEO_STREAM -> Icon(Icons.Default.ControlCamera, contentDescription = "Telemetry")
-                        NavRoute.ROVER_SETTINGS -> Icon(Icons.Default.Home, contentDescription = "Settings")
-//                        NavRoute.OCCUPANCY -> Icon(Icons.Default.MoreHoriz, contentDescription = "Occupancy")
-//                      NavRoute.TELEMETRY-> Icon(Icons.Default.Settings, contentDescription = "Testing")
-                        NavRoute.ADVANCE-> Icon(Icons.Default.MoreHoriz, contentDescription = "Occupancy")
-                    }
+                    Icon(
+                        imageVector = when (route) {
+                            NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
+                            NavRoute.ROVER_SETTINGS -> Icons.Default.Home
+                            NavRoute.ADVANCE -> Icons.Default.MoreHoriz
+                            else -> Icons.Default.Help // Default case
+                        },
+                        contentDescription = route,
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 },
-                label = { Text(route) }
+                label = {
+                    Text(
+                        text = route,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.background // Prevents background change
+                )
             )
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -421,41 +467,67 @@ fun DefaultPreview() {
 }
 
 @Composable
-fun TranslucentMicButton(
+fun MicPopup(
     text: MutableState<String>,
-    isVisible: MutableState<Boolean>,
-    onClick: () -> Unit
+    animationFrames: List<Int>, // List of drawable resource IDs
 ) {
-    Log.d("TranslucentMicButton", text.value)
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.2f) // Occupy 1/3 of the screen's height
-                .background(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), // Translucent background
-                    //shape = MaterialTheme.shapes.medium
-                ),
-            contentAlignment = Alignment.Center // Center the content inside the Box
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = text.value,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Bold, // Make the text bold
-                        fontSize = 20.sp // Increase font size
-                    ),
-                    color = MaterialTheme.colorScheme.background,
-                    modifier = Modifier.padding(8.dp)
-                )
-                IconButton(onClick = onClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Mic,
-                        contentDescription = "Voice Input",
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+    val currentFrameIndex = remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) { // Keep looping as long as the popup is visible
+            delay(200) // Change frame every 500ms
+            currentFrameIndex.value = (currentFrameIndex.value + 1) % animationFrames.size
         }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.4f)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.background.copy(alpha = 0f), // Start with background color (faded)
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.6f), // Middle transition
+                        MaterialTheme.colorScheme.background.copy(alpha = 1f) // Fully transparent at the top
+                    )
+                )
+            ),
+        contentAlignment = Alignment.Center // Center the content inside the Box
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // User Input Dialog Box
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f) // 90% of the width
+                    .padding(horizontal = 16.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .border(1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
+                    .padding(12.dp), // Inner padding for text
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text.value.ifEmpty { "Listening..." },
+                    fontSize = 12.sp,
+                    color = Color.White // White text
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Animated Circle at the Bottom
+            Image(
+                painter = painterResource(id = animationFrames[currentFrameIndex.value]),
+                contentDescription = "Listening Animation",
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(Color.Transparent)
+            )
+        }
+    }
 }

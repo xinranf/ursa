@@ -24,15 +24,26 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.chatgptlite.wanted.MainViewModel
 import com.chatgptlite.wanted.ui.common.AppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    mainViewModel: MainViewModel = viewModel(),
     viewModel: RoverSettingsViewModel = viewModel(),
     onBackPressed: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.syncWithMainViewModel(mainViewModel) // Sync states
+    }
+
+    val roverState by viewModel.roverState.collectAsState()
+
     var ipAddress by remember { mutableStateOf("10.0.0.120") }
     var port by remember { mutableStateOf("8000") }
     var textToSend by remember { mutableStateOf("ros2 topic list") }
@@ -69,17 +80,17 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         text = "Status",
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth(),
+//                        modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 },
-                modifier = Modifier.height(80.dp),
+                modifier = Modifier.height(80.dp).padding(top = 6.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -90,14 +101,14 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
                 //.verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(16 / 9f)
-                    .background(Color.Black)
+                    .background(Color.Black, shape = RoundedCornerShape(8.dp))
             ) {
                 VideoFeedDisplay(viewModel.currentFrame.value)
             }
@@ -116,9 +127,9 @@ fun SettingsScreen(
                         .weight(1f)
                         .padding(end = 8.dp)
                 ) {
-                    TelemetryBlock("Coordinates (X, Y)", "$xCoordinate, $yCoordinate")
+                    TelemetryBlock("State", roverState, isState = true) // Updated state
                     Spacer(modifier = Modifier.height(8.dp))
-                    TelemetryBlock("Heading (W)", "$heading")
+                    TelemetryBlock("Battery", "$battery%")
                     Spacer(modifier = Modifier.height(8.dp))
                     TelemetryBlock("Linear Velocity (x)", "$linear_velocity")
                     Spacer(modifier = Modifier.height(8.dp))
@@ -132,8 +143,13 @@ fun SettingsScreen(
                         .padding(start = 8.dp)
                 ) {
                     OccupancyDisplay(viewModel.occupancyBitmap.value)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    TelemetryBlock("Battery", "$battery%")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TelemetryBlock("Coordinates (X, Y)", "$xCoordinate, $yCoordinate")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TelemetryBlock("Heading (W)", "$heading")
+//                    TelemetryBlock(title = "Battery") {
+//                        BatteryDisplay(battery)
+//                    }
                 }
             }
         }
@@ -141,43 +157,139 @@ fun SettingsScreen(
 }
 
 @Composable
-fun TelemetryBlock(title: String, value: String) {
+fun TelemetryBlock(title: String, value: String? = null, isState: Boolean? = false) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.linearGradient(
                     listOf(
-                        Color(0xFFAFFD86).copy(alpha = 0.3f),
-                        Color(0xFF7A8A80).copy(alpha = 0.3f)
-                    )),
+                        Color(0xFFAFFD86).copy(alpha = 0.25f),
+                        Color(0xFF7A8A80).copy(alpha = 0.25f)
+                    )
+                ),
                 shape = RoundedCornerShape(8.dp),
             )
-            .padding(12.dp)
     ) {
-        Text(
-            text = title,
-            color = Color.White,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-        Divider(color = Color.White, thickness = 0.5.dp, modifier = Modifier.padding(vertical = 6.dp))
-        Text(
-            text = value,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        if (value != null && isState == false) {
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 8.dp)
+            )
+            Divider(color = Color.White, thickness = 0.5.dp, modifier = Modifier.fillMaxWidth())
+
+            Text(
+                text = value,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 12.dp)
+            )
+        } else if (isState == true) {
+            // Display state text with proper color
+            val stateColor = when (value) {
+                "Executing" -> Color(0xFFFFD700) // Yellow
+                "Successful" -> Color(0xFF4CAF50) // Green
+                else -> Color.White // Default Green for Idle
+            }
+
+            Text(
+                text = title,
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 8.dp)
+            )
+            Divider(color = Color.White, thickness = 0.5.dp, modifier = Modifier.fillMaxWidth())
+
+            Text(
+                text = value ?: "Unknown",
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                style = MaterialTheme.typography.bodyLarge,
+                color = stateColor,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+            )
+
+            Text(
+                text = when (value) {
+                    "Idle" -> "Rover is ready"
+                    "Executing" -> "Rover is processing"
+                    "Successful" -> "Command completed"
+                    else -> ""
+                },
+                fontSize = 12.sp, // Smaller description text
+                color = Color.White,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+        }
     }
 }
+
+
+//
+//@Composable
+//fun TelemetryBlock(title: String, value: String? = null, isState: Boolean? = false) {
+//    Column(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .background(
+//                brush = Brush.linearGradient(
+//                    listOf(
+//                        Color(0xFFAFFD86).copy(alpha = 0.25f),
+//                        Color(0xFF7A8A80).copy(alpha = 0.25f)
+//                    )),
+//                shape = RoundedCornerShape(8.dp),
+//            )
+//    ) {
+//        if (value != null && isState == false) {
+//        Text(
+//            text = title,
+//            color = Color.White,
+//            fontSize = 12.sp,
+//            modifier = Modifier
+//                .align(Alignment.CenterHorizontally)
+//                .padding(vertical = 8.dp)
+//        )
+//        Divider(color = Color.White, thickness = 0.5.dp, modifier = Modifier.fillMaxWidth())
+//
+//            Text(
+//                text = value,
+//                fontWeight = FontWeight.Bold,
+//                style = MaterialTheme.typography.bodyLarge,
+//                color = MaterialTheme.colorScheme.primary,
+//                textAlign = TextAlign.Center,
+//                modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 12.dp)
+//            )
+//        } else {
+//            // To Lisa: 改这里显示state文字
+//        }
+//    }
+//}
 
 @Composable
 fun OccupancyDisplay(bitmap: Bitmap?) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .background(Color.Black)
+            .border(1.dp, color = MaterialTheme.colorScheme.primary.copy(alpha=0.3f), shape = RoundedCornerShape(8.dp))
+            .background(Color.Black, shape = RoundedCornerShape(8.dp)),
+        contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {
             Image(
@@ -188,7 +300,8 @@ fun OccupancyDisplay(bitmap: Bitmap?) {
         } else {
             Text(
                 text = "Loading occupancy map...",
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier.align(Alignment.Center),
+                textAlign = TextAlign.Center, // Centers text horizontally
             )
         }
     }
@@ -200,6 +313,7 @@ fun VideoFeedDisplay(bitmap: Bitmap?) {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
+            .background(Color.Black, shape = RoundedCornerShape(8.dp))
     ) {
         if (bitmap != null) {
             Image(
@@ -216,5 +330,44 @@ fun VideoFeedDisplay(bitmap: Bitmap?) {
     }
 }
 
+@Composable
+fun BatteryDisplay(batteryLevel: Int) {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .background(Color.Transparent),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val strokeWidth = 12.dp.toPx()
+            val radius = size.minDimension / 2 - strokeWidth / 2
+            val sweepAngle = batteryLevel / 100f * 360f
 
+            // Draw outer circle
+            drawCircle(
+                color = Color.Gray,
+                radius = radius,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+            )
+
+            // Draw battery percentage arc
+            drawArc(
+                color = Color.Green,
+                startAngle = -90f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth)
+            )
+        }
+
+        // Display battery percentage text
+        Text(
+            text = "$batteryLevel%",
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            color = Color.White,
+            modifier = Modifier.align(Alignment.Center)
+        )
+    }
+}
 
