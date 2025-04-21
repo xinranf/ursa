@@ -1,7 +1,5 @@
 package com.chatgptlite.wanted.constants
 
-const val openAIApiKey = "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"
-
 const val urlToImageAppIcon = "https://tai.berkeley.edu/_next/image?url=%2FTAI_prompt.png&w=256&q=75"
 const val urlToImageAuthor = "https://avatars.githubusercontent.com/u/60530946?v=4"
 const val urlToAvatarGPT = "https://gptapk.com/wp-content/uploads/2023/02/chatgpt-icon.png"
