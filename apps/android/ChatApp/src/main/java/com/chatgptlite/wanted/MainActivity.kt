@@ -664,37 +664,46 @@ fun MicPopup(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
         ) {
-            // User Input Dialog Box
+            // Input Dialog Box
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f) // 90% of the width
+                    .fillMaxWidth(0.9f)
                     .padding(horizontal = 16.dp)
                     .background(
                         color = MaterialTheme.colorScheme.background,
                         shape = RoundedCornerShape(8.dp)
                     )
                     .border(1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp), // Inner padding for text
+                    .padding(12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = text.value.ifEmpty { "Listening..." },
                     fontSize = 12.sp,
-                    color = Color.White // White text
+                    color = Color.White
                 )
+            }
 
-                if (genieResponse.value.isNotBlank()) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Output Dialog Box
+            if (genieResponse.value.isNotBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(horizontal = 16.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
                         text = genieResponse.value,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(12.dp)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
