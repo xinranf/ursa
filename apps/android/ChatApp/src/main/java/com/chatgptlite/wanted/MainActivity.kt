@@ -733,11 +733,11 @@ fun MicPopup(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp) // Increased padding for equal edge distances
+                            .padding(horizontal = 16.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .width(280.dp) // Slightly reduced width to maintain overall balance
+                                .width(280.dp)
                                 .align(Alignment.CenterStart)
                                 .background(
                                     color = Color.Black,
@@ -747,7 +747,11 @@ fun MicPopup(
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = "Can you confirm the command:\n${genieResponse.value}",
+                                text = if (genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                                    genieResponse.value
+                                } else {
+                                    "Can you confirm the command:\n${genieResponse.value}"
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Start
@@ -757,55 +761,65 @@ fun MicPopup(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Confirm and Cancel buttons
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 0.dp, end = 0.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(
-                            onClick = {
-                                text.value = ""
-                                genieResponse.value = ""
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Black
-                            ),
-                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier.width(120.dp),
-                            contentPadding = PaddingValues(0.dp)
+                    // Only show buttons if it's not "Sorry I don't understand"
+                    if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                        // Confirm and Cancel buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 0.dp, end = 0.dp),
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                "Confirm",
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 16.sp,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
+                            Button(
+                                onClick = {
+                                    text.value = ""
+                                    genieResponse.value = ""
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                ),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.width(120.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text(
+                                    "Confirm",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(32.dp))
+
+                            Button(
+                                onClick = {
+                                    text.value = ""
+                                    genieResponse.value = ""
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                ),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(24.dp),
+                                modifier = Modifier.width(120.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Text(
+                                    "Cancel",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
                         }
-
-                        Spacer(modifier = Modifier.width(32.dp))
-
-                        Button(
-                            onClick = {
-                                text.value = ""
-                                genieResponse.value = ""
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Black
-                            ),
-                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(24.dp),
-                            modifier = Modifier.width(120.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Text(
-                                "Cancel",
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 16.sp,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
+                    } else {
+                        // If it's "Sorry I don't understand", automatically close after delay
+                        LaunchedEffect(Unit) {
+                            delay(1000) // Wait for 2 seconds
+                            text.value = ""
+                            genieResponse.value = ""
                         }
                     }
                 }
