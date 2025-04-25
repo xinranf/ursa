@@ -16,6 +16,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -365,15 +367,15 @@ class MainActivity : ComponentActivity() {
         val cConversationActivityKeyHtpConfig = htpExtConfigPath.toString()
         val cConversationActivityKeyModelName = "llama3_2_3b"
 
-            try {
-                // Make QNN libraries discoverable
-                val nativeLibPath = applicationContext.applicationInfo.nativeLibraryDir
-                Os.setenv("ADSP_LIBRARY_PATH", nativeLibPath, true)
-                Os.setenv("LD_LIBRARY_PATH", nativeLibPath, true)
+        try {
+            // Make QNN libraries discoverable
+            val nativeLibPath = applicationContext.applicationInfo.nativeLibraryDir
+            Os.setenv("ADSP_LIBRARY_PATH", nativeLibPath, true)
+            Os.setenv("LD_LIBRARY_PATH", nativeLibPath, true)
 
-                // Get information from MainActivity regarding
-                //  - Model to run
-                //  - HTP config to use
+            // Get information from MainActivity regarding
+            //  - Model to run
+            //  - HTP config to use
 //                val bundle = savedInstanceState
 //                if (bundle == null) {
 //                    Log.e("ChatApp", "Error getting additional info from bundle.")
@@ -385,20 +387,20 @@ class MainActivity : ComponentActivity() {
 //                    finish()
 //                }
 
-                val htpExtensionsDir = cConversationActivityKeyHtpConfig
-                val modelName = cConversationActivityKeyModelName
-                val externalCacheDir = this.externalCacheDir!!.absolutePath.toString()
-                val modelDir = Paths.get(externalCacheDir, "models", modelName).toString()
+            val htpExtensionsDir = cConversationActivityKeyHtpConfig
+            val modelName = cConversationActivityKeyModelName
+            val externalCacheDir = this.externalCacheDir!!.absolutePath.toString()
+            val modelDir = Paths.get(externalCacheDir, "models", modelName).toString()
 
-                // Load Model
-                genieWrapper = GenieWrapper(modelDir, htpExtensionsDir)
-                Log.i("Chatbackend", "$modelName Loaded.")
-            } catch (e: java.lang.Exception) {
-                Log.e("ChatApp", "Error during conversation with Chatbot: $e")
-                Toast.makeText(this, "Unexpected error observed. Exiting app.", Toast.LENGTH_SHORT)
-                    .show()
-                finish()
-            }
+            // Load Model
+            genieWrapper = GenieWrapper(modelDir, htpExtensionsDir)
+            Log.i("Chatbackend", "$modelName Loaded.")
+        } catch (e: java.lang.Exception) {
+            Log.e("ChatApp", "Error during conversation with Chatbot: $e")
+            Toast.makeText(this, "Unexpected error observed. Exiting app.", Toast.LENGTH_SHORT)
+                .show()
+            finish()
+        }
 
 //        getGenieResponse("test message") { responseToken ->
 //            Log.d("Chatbackend", "Genie response: $responseToken")
@@ -635,12 +637,12 @@ fun DefaultPreview() {
 fun MicPopup(
     text: MutableState<String>,
     genieResponse: MutableState<String>,
-    animationFrames: List<Int>, // List of drawable resource IDs
+    animationFrames: List<Int>
 ) {
     val currentFrameIndex = remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        while (true) { // Keep looping as long as the popup is visible
-            delay(200) // Change frame every 500ms
+        while (true) {
+            delay(200)
             currentFrameIndex.value = (currentFrameIndex.value + 1) % animationFrames.size
         }
     }
@@ -651,60 +653,161 @@ fun MicPopup(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.background.copy(alpha = 0f), // Start with background color (faded)
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.6f), // Middle transition
-                        MaterialTheme.colorScheme.background.copy(alpha = 1f) // Fully transparent at the top
+                        MaterialTheme.colorScheme.background.copy(alpha = 0f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 1f)
                     )
                 )
             ),
-        contentAlignment = Alignment.Center // Center the content inside the Box
+        contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
         ) {
-            // Input Dialog Box
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(horizontal = 16.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.background,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .border(1.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = text.value.ifEmpty { "Listening..." },
-                    fontSize = 12.sp,
-                    color = Color.White
-                )
+            // Initial greeting (Left-aligned)
+            if (text.value.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp) // Increased padding for equal edge distances
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(280.dp) // Slightly reduced width to maintain overall balance
+                            .align(Alignment.CenterStart)
+                            .background(
+                                color = Color.Black,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(24.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Hi! How can I help you?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                }
+            }
+
+            // User input (Right-aligned)
+            if (text.value.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp) // Increased padding for equal edge distances
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(280.dp) // Slightly reduced width to maintain overall balance
+                            .align(Alignment.CenterEnd)
+                            .background(
+                                color = Color.Black,
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .border(1.dp, Color.White, shape = RoundedCornerShape(24.dp))
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = text.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                            textAlign = TextAlign.Start
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Output Dialog Box
+            // App response (Left-aligned)
             if (genieResponse.value.isNotBlank()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 16.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .border(1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = genieResponse.value,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp) // Increased padding for equal edge distances
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(280.dp) // Slightly reduced width to maintain overall balance
+                                .align(Alignment.CenterStart)
+                                .background(
+                                    color = Color.Black,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(24.dp))
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = "Can you confirm the command:\n${genieResponse.value}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                textAlign = TextAlign.Start
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Confirm and Cancel buttons
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 0.dp, end = 0.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = {
+                                text.value = ""
+                                genieResponse.value = ""
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black
+                            ),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.width(120.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                "Confirm",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(32.dp))
+
+                        Button(
+                            onClick = {
+                                text.value = ""
+                                genieResponse.value = ""
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Black
+                            ),
+                            border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.width(120.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                "Cancel",
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                    }
                 }
             }
 
