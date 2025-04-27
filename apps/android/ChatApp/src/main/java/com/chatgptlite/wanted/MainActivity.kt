@@ -264,7 +264,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
 
         lateinit var htpExtConfigPath: Path
         try {
@@ -402,30 +402,14 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             floatingActionButton = {
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    // Floating mic button
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
                                     FloatingActionButton(
                                         onClick = {
-                                            Log.d("MicButton", "Square Mic Button clicked!")
-                                            startRecorder()
-                                            micVisibleState.value =
-                                                true  // Show the translucent button
                                         },
-                                        modifier = Modifier
-                                            .align(Alignment.BottomEnd)
-                                            .padding(8.dp)
-                                            .border(
-                                                width = 1.dp,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                shape = RoundedCornerShape(12.dp)
-                                            ),
-                                        containerColor = MaterialTheme.colorScheme.secondary
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.Mic,
-                                            contentDescription = "Mic Button",
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
                                     }
                                 }
 
@@ -446,7 +430,9 @@ class MainActivity : ComponentActivity() {
 
                                 if (micVisibleState.value) {
                                     Box(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(bottom = 10.dp),
                                         contentAlignment = Alignment.BottomCenter // Ensures it appears at the bottom
                                     ) {
                                         MicPopup(
