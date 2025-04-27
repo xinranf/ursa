@@ -1,4 +1,4 @@
-package com.chatgptlite.wanted.ui.settings.video
+package com.chatgptlite.wanted.ui.settings.controller
 
 import android.app.Application
 import android.content.Context
