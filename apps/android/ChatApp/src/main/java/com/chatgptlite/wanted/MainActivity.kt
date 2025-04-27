@@ -387,127 +387,105 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(true)
                     }
 
-
                     ChatGPTLiteTheme(darkTheme.value) {
-                        Scaffold(
-                            bottomBar = {
-                                BottomNavigationBar(
-                                    navController = navController,
-                                    items = bottomNavItems,
-                                    onMicClick = {
-                                        Log.d("MicButton", "Mic clicked!")
-                                        startRecorder()
-                                        micVisibleState.value = true
-                                    }
-                                )
-                            },
-                            floatingActionButton = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
+                        Box(modifier = Modifier.fillMaxSize()) { // 🔥 Outer Box controls layering manually
+                            val animationFrames = listOf(
+                                R.drawable.mic_img_1,
+                                R.drawable.mic_img_2,
+                                R.drawable.mic_img_3,
+                                R.drawable.mic_img_4,
+                                R.drawable.mic_img_5,
+                                R.drawable.mic_img_6,
+                                R.drawable.mic_img_7,
+                                R.drawable.mic_img_8,
+                                R.drawable.mic_img_9,
+                                R.drawable.mic_img_10,
+                                R.drawable.mic_img_11,
+                                R.drawable.mic_img_12
+                            )
+
+                            Scaffold(
+                                bottomBar = {
+                                    BottomNavigationBar(
+                                        navController = navController,
+                                        items = bottomNavItems,
+                                        onMicClick = {
+                                            Log.d("MicButton", "Mic clicked!")
+                                            startRecorder()
+                                            micVisibleState.value = true
+                                        }
+                                    )
+                                }
+                            ) { innerPadding ->
+                                Surface(
+                                    color = MaterialTheme.colorScheme.background,
+                                    modifier = Modifier.padding(innerPadding)
                                 ) {
-                                    FloatingActionButton(
-                                        onClick = {
-                                        },
+                                    NavHost(
+                                        navController = navController,
+                                        startDestination = NavRoute.ROVER_SETTINGS
                                     ) {
+                                        composable(NavRoute.HOME) {
+                                            SettingsScreen(
+                                                mainViewModel = mainViewModel,
+                                                viewModel = viewModel<RoverSettingsViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
+                                        composable(NavRoute.ROVER_SETTINGS) {
+                                            SettingsScreen(
+                                                mainViewModel = mainViewModel,
+                                                viewModel = viewModel<RoverSettingsViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
+                                        composable(NavRoute.OCCUPANCY) {
+                                            Occupancy(
+                                                viewModel<OccupancyViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
+                                        composable(NavRoute.VIDEO_STREAM) {
+                                            VideoStreamingSetting(
+                                                viewModel<VideoCamSettingsViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
+                                        composable(NavRoute.TELEMETRY) {
+                                            TelemetryScreen(
+                                                viewModel<TelemetryViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
+                                        composable(NavRoute.ADVANCE) {
+                                            AdvanceScreen(
+                                                viewModel<AdvanceViewModel>(),
+                                                onBackPressed = { navController.navigateUp() },
+                                                onTerminalClick = {
+                                                    navController.navigate("terminal")
+                                                },
+                                                onLLMSettingClick = {
+                                                    navController.navigate("llm_settings")
+                                                }
+                                            )
+                                        }
+                                        composable("terminal") {
+                                            TerminalScreen(
+                                                viewModel = viewModel<TerminalViewModel>(),
+                                                onBackPressed = { navController.navigateUp() }
+                                            )
+                                        }
                                     }
                                 }
-
-                                val animationFrames = listOf(
-                                    R.drawable.mic_img_1, // Replace with your actual drawable resources
-                                    R.drawable.mic_img_2,
-                                    R.drawable.mic_img_3,
-                                    R.drawable.mic_img_4,
-                                    R.drawable.mic_img_5,
-                                    R.drawable.mic_img_6,
-                                    R.drawable.mic_img_7,
-                                    R.drawable.mic_img_8,
-                                    R.drawable.mic_img_9,
-                                    R.drawable.mic_img_10,
-                                    R.drawable.mic_img_11,
-                                    R.drawable.mic_img_12
-                                )
-
-                                if (micVisibleState.value) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(bottom = 10.dp),
-                                        contentAlignment = Alignment.BottomCenter // Ensures it appears at the bottom
-                                    ) {
-                                        MicPopup(
-                                            text = text,
-                                            genieResponse = genieResponse,
-                                            animationFrames = animationFrames
-                                        )
-                                    }
-                                }
-
                             }
-                        ) { innerPadding ->
-                            Surface(
-                                color = MaterialTheme.colorScheme.background
-                            ) {
-                                // NavHost for managing navigation
-                                NavHost(
-                                    navController = navController,
-                                    startDestination = NavRoute.ROVER_SETTINGS
-                                ) {
-                                    composable(NavRoute.HOME) {
-                                        SettingsScreen(
-                                            mainViewModel = mainViewModel,
-                                            viewModel = viewModel<RoverSettingsViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                    composable(NavRoute.ROVER_SETTINGS) {
-                                        SettingsScreen(
-                                            mainViewModel = mainViewModel,
-                                            viewModel = viewModel<RoverSettingsViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                    composable(NavRoute.OCCUPANCY) {
-                                        Occupancy(
-                                            viewModel<OccupancyViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                    composable(NavRoute.VIDEO_STREAM) {
-                                        VideoStreamingSetting(
-                                            viewModel<VideoCamSettingsViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                    composable(NavRoute.TELEMETRY) {
-                                        TelemetryScreen(
-                                            viewModel<TelemetryViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                    composable(NavRoute.ADVANCE) {
-                                        AdvanceScreen(
-                                            viewModel<AdvanceViewModel>(),
-                                            onBackPressed = { navController.navigateUp() },
-                                            onTerminalClick = {
-                                                // Navigate to Terminal Page
-                                                navController.navigate("terminal")
-                                            },
-                                            onLLMSettingClick = {
-                                                // Navigate to LLM Settings Page
-                                                navController.navigate("llm_settings")
-                                            }
-                                        )
-                                    }
-                                    composable("terminal") {
-                                        TerminalScreen(
-                                            viewModel = viewModel<TerminalViewModel>(),
-                                            onBackPressed = { navController.navigateUp() }
-                                        )
-                                    }
-                                }
 
-
+                            // 🔥 MicPopup is placed OUTSIDE Scaffold, drawn on top
+                            if (micVisibleState.value) {
+                                MicPopup(
+                                    text = text,
+                                    genieResponse = genieResponse,
+                                    animationFrames = animationFrames
+                                )
                             }
                         }
                     }
