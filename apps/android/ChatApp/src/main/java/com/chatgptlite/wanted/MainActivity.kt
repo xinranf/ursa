@@ -647,6 +647,7 @@ fun MicPopup(
             currentFrameIndex.value = (currentFrameIndex.value + 1) % animationFrames.size
         }
     }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -664,190 +665,153 @@ fun MicPopup(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            // Initial greeting (Left-aligned)
-            if (text.value.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp) // Increased padding for equal edge distances
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(280.dp) // Slightly reduced width to maintain overall balance
-                            .align(Alignment.CenterStart)
-                            .background(
-                                color = Color.Black,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = "Hi! How can I help you?",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                }
-            }
-
-            // User input (Right-aligned)
             if (text.value.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp) // Increased padding for equal edge distances
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(280.dp) // Slightly reduced width to maintain overall balance
-                            .align(Alignment.CenterEnd)
-                            .background(
-                                color = Color.Black,
-                                shape = RoundedCornerShape(24.dp)
-                            )
-                            .border(1.dp, Color.White, shape = RoundedCornerShape(24.dp))
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = text.value,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
-                            textAlign = TextAlign.Start
-                        )
-                    }
-                }
+                UserInputBox(text.value)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // App response (Left-aligned)
             if (genieResponse.value.isNotBlank()) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .width(280.dp)
-                                .align(Alignment.CenterStart)
-                                .background(
-                                    color = Color.Black,
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                                .border(
-                                    1.dp,
-                                    MaterialTheme.colorScheme.primary,
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                text = if (genieResponse.value.contains(
-                                        "Sorry",
-                                        ignoreCase = true
-                                    )
-                                ) {
-                                    genieResponse.value
-                                } else {
-                                    "Can you confirm the command:\n${genieResponse.value}"
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                textAlign = TextAlign.Start
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Only show buttons if it's not "Sorry I don't understand"
-                    if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
-                        // Confirm and Cancel buttons
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 0.dp, end = 0.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Button(
-                                onClick = {
-                                    text.value = ""
-                                    genieResponse.value = ""
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Black
-                                ),
-                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
-                                shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.width(120.dp),
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    "Confirm",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(32.dp))
-
-                            Button(
-                                onClick = {
-                                    text.value = ""
-                                    genieResponse.value = ""
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Black
-                                ),
-                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
-                                shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier.width(120.dp),
-                                contentPadding = PaddingValues(0.dp)
-                            ) {
-                                Text(
-                                    "Cancel",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        // If it's "Sorry I don't understand", automatically close after delay
-                        LaunchedEffect(Unit) {
-                            delay(1000) // Wait for 2 seconds
-                            text.value = ""
-                            genieResponse.value = ""
-                        }
-                    }
-                }
+                GenieResponseBox(
+                    genieResponse = genieResponse,
+                    text = text
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Animated Circle at the Bottom
-            Image(
-                painter = painterResource(id = animationFrames[currentFrameIndex.value]),
-                contentDescription = "Listening Animation",
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(Color.Transparent)
+            ListeningAnimation(animationFrames, currentFrameIndex.value)
+        }
+    }
+}
+
+@Composable
+private fun UserInputBox(userText: String) {
+    MessageBox(
+        message = userText,
+        textColor = Color.White,
+        alignStart = false
+    )
+}
+
+@Composable
+private fun GenieResponseBox(
+    genieResponse: MutableState<String>,
+    text: MutableState<String>
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        MessageBox(
+            message = if (genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                genieResponse.value
+            } else {
+                "Can you confirm the command:\n${genieResponse.value}"
+            },
+            textColor = MaterialTheme.colorScheme.primary,
+            alignStart = true
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
+            ConfirmCancelButtons(onConfirm = {
+                text.value = ""
+                genieResponse.value = ""
+            }, onCancel = {
+                text.value = ""
+                genieResponse.value = ""
+            })
+        } else {
+            LaunchedEffect(Unit) {
+                delay(1000)
+                text.value = ""
+                genieResponse.value = ""
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageBox(
+    message: String,
+    textColor: Color,
+    alignStart: Boolean
+) {
+    Box(
+        modifier = Modifier
+//            .fillMaxWidth()
+            .wrapContentWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(280.dp)
+                .align(if (alignStart) Alignment.CenterStart else Alignment.CenterEnd)
+                .background(Color.Black, RoundedCornerShape(24.dp))
+                .border(
+                    1.dp,
+                    if (textColor == Color.White) Color.White else MaterialTheme.colorScheme.primary,
+                    RoundedCornerShape(24.dp)
+                )
+                .padding(12.dp)
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor,
+                textAlign = TextAlign.Start
             )
         }
     }
 }
+
+@Composable
+private fun ConfirmCancelButtons(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        ConfirmButton(text = "Confirm", onClick = onConfirm)
+        Spacer(modifier = Modifier.width(32.dp))
+        ConfirmButton(text = "Cancel", onClick = onCancel)
+    }
+}
+
+@Composable
+private fun ConfirmButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.primary),
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.width(120.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Text(
+            text,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ListeningAnimation(
+    animationFrames: List<Int>,
+    frameIndex: Int
+) {
+    Image(
+        painter = painterResource(id = animationFrames[frameIndex]),
+        contentDescription = "Listening Animation",
+        modifier = Modifier
+            .size(120.dp)
+            .background(Color.Transparent)
+    )
+}
+
