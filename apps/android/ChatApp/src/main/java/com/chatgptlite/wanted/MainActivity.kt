@@ -20,6 +20,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -392,7 +393,12 @@ class MainActivity : ComponentActivity() {
                             bottomBar = {
                                 BottomNavigationBar(
                                     navController = navController,
-                                    items = bottomNavItems
+                                    items = bottomNavItems,
+                                    onMicClick = {
+                                        Log.d("MicButton", "Mic clicked!")
+                                        startRecorder()
+                                        micVisibleState.value = true
+                                    }
                                 )
                             },
                             floatingActionButton = {
@@ -531,54 +537,72 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController, items: List<String>) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        tonalElevation = 0.dp
+fun BottomNavigationBar(
+    navController: NavHostController,
+    items: List<String>,
+    onMicClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
     ) {
-        val currentRoute by navController.currentBackStackEntryFlow
-            .map { it?.destination?.route ?: "Status" }
-            .collectAsState(initial = "Status")
-        items.forEach { route ->
-            val isSelected = currentRoute == route
-            Log.d("navbar", "$currentRoute, $route, $isSelected");
-            NavigationBarItem(
-                selected = isSelected,
-                onClick = {
-                    if (!isSelected) {
-                        navController.navigate(route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                },
-                icon = {
-                    Icon(
-                        imageVector = when (route) {
-                            NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
-                            NavRoute.ROVER_SETTINGS -> Icons.Default.Home
-                            NavRoute.ADVANCE -> Icons.Default.MoreHoriz
-                            else -> Icons.Default.Help // Default case
-                        },
-                        contentDescription = route,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                label = {
-                    Text(
-                        text = route,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.background,
+            tonalElevation = 0.dp,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            val currentRoute by navController.currentBackStackEntryFlow
+                .map { it?.destination?.route ?: "Status" }
+                .collectAsState(initial = "Status")
 
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                    indicatorColor = MaterialTheme.colorScheme.background // Prevents background change
+            items.forEach { route ->
+                val isSelected = currentRoute == route
+                NavigationBarItem(
+                    selected = isSelected,
+                    onClick = {
+                        if (!isSelected) {
+                            navController.navigate(route) {
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = when (route) {
+                                NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
+                                NavRoute.ROVER_SETTINGS -> Icons.Default.Home
+                                NavRoute.ADVANCE -> Icons.Default.MoreHoriz
+                                else -> Icons.Default.Help
+                            },
+                            contentDescription = route,
+                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = route,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                        indicatorColor = MaterialTheme.colorScheme.background
+                    )
                 )
-            )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = (-24).dp)
+        ) {
+            MicButton(onMicClick = onMicClick)
         }
     }
 }
@@ -588,6 +612,35 @@ fun BottomNavigationBar(navController: NavHostController, items: List<String>) {
 @Composable
 fun DefaultPreview() {
     ChatGPTLiteTheme {
+    }
+}
+
+@Composable
+fun MicButton(
+    onMicClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .background(
+                color = MaterialTheme.colorScheme.secondary,
+                shape = RoundedCornerShape(50)
+            )
+            .border(
+                width = 2.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(50)
+            )
+            .clickable {
+                onMicClick()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Mic,
+            contentDescription = "Voice Input",
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
