@@ -651,12 +651,12 @@ fun MicPopup(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(1f)
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.background.copy(alpha = 0f),
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.6f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                         MaterialTheme.colorScheme.background.copy(alpha = 1f)
                     )
                 )
@@ -693,7 +693,7 @@ private fun UserInputBox(userText: String) {
     MessageBox(
         message = userText,
         textColor = Color.White,
-        alignStart = false
+        alignment = Alignment.CenterEnd
     )
 }
 
@@ -710,7 +710,7 @@ private fun GenieResponseBox(
                 "Can you confirm the command:\n${genieResponse.value}"
             },
             textColor = MaterialTheme.colorScheme.primary,
-            alignStart = true
+            alignment = Alignment.CenterStart
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -737,18 +737,18 @@ private fun GenieResponseBox(
 private fun MessageBox(
     message: String,
     textColor: Color,
-    alignStart: Boolean
+    alignment: Alignment
 ) {
     Box(
         modifier = Modifier
-//            .fillMaxWidth()
+            .fillMaxWidth()
             .wrapContentWidth()
             .padding(horizontal = 16.dp)
     ) {
         Box(
             modifier = Modifier
                 .width(280.dp)
-                .align(if (alignStart) Alignment.CenterStart else Alignment.CenterEnd)
+                .align(alignment)
                 .background(Color.Black, RoundedCornerShape(24.dp))
                 .border(
                     1.dp,
