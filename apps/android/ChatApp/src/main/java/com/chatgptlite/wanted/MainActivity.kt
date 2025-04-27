@@ -20,7 +20,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -95,6 +94,7 @@ class MainActivity : ComponentActivity() {
             System.loadLibrary("chatapp")
         }
     }
+
     private val mainViewModel: MainViewModel by viewModels()
     private val TAG = "MainActivity"
     private val micVisibleState = mutableStateOf(false)
@@ -104,18 +104,6 @@ class MainActivity : ComponentActivity() {
     private val isForegroundRecording = mutableStateOf(false)
     lateinit var genieWrapper: GenieWrapper
 
-    private val keywordReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            //if (true) {
-            if (intent.action == "com.chatgptlite.wanted.ACTION_KEYWORD_DETECTED") {
-                val detectedKeyword = intent.getStringExtra("keyword")
-                Log.d(TAG, "Keyword received in MainActivity: $detectedKeyword")
-                // Handle the keyword detection event
-                startRecorder()
-//                micVisibleState.value = true
-            }
-        }
-    }
 
     private fun startRecorder() {
         var modelPath = getFilePath(this, "whisper-tiny-en.tflite")
@@ -275,7 +263,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         lateinit var htpExtConfigPath: Path
         try {
@@ -387,7 +375,7 @@ class MainActivity : ComponentActivity() {
                     val bottomNavItems = listOf(
                         NavRoute.VIDEO_STREAM,
                         NavRoute.ROVER_SETTINGS,
-//                        NavRoute.ADVANCE
+                        NavRoute.ADVANCE
                     )
 
                     // Intercepts back navigation when the drawer is open
@@ -404,69 +392,66 @@ class MainActivity : ComponentActivity() {
                             bottomBar = {
                                 BottomNavigationBar(
                                     navController = navController,
-                                    items = bottomNavItems,
-                                    startRecorder = { startRecorder() },
-                                    micVisibleState = micVisibleState,
-                                    text = text,
-                                    genieResponse = genieResponse
+                                    items = bottomNavItems
                                 )
                             },
-//                            floatingActionButton = {
-//                                Box(modifier = Modifier.fillMaxSize()) {
-//                                    // Floating mic button
-//                                    FloatingActionButton(
-//                                        onClick = {
-//                                            Log.d("MicButton", "Square Mic Button clicked!")
-//                                            startRecorder()
-//                                            micVisibleState.value = true  // Show the translucent button
-//                                        },
-//                                        modifier = Modifier
-//                                            .align(Alignment.BottomEnd)
-//                                            .padding(8.dp)
-//                                            .border(
-//                                                width = 1.dp,
-//                                                color = MaterialTheme.colorScheme.primary,
-//                                                shape = RoundedCornerShape(12.dp)
-//                                            ),
-//                                        containerColor = MaterialTheme.colorScheme.secondary
-//                                    ) {
-//                                        Icon(
-//                                            imageVector = Icons.Filled.Mic,
-//                                            contentDescription = "Mic Button",
-//                                            tint = MaterialTheme.colorScheme.primary
-//                                        )
-//                                    }
-//                                }
-//
-//                                val animationFrames = listOf(
-//                                    R.drawable.mic_img_1, // Replace with your actual drawable resources
-//                                    R.drawable.mic_img_2,
-//                                    R.drawable.mic_img_3,
-//                                    R.drawable.mic_img_4,
-//                                    R.drawable.mic_img_5,
-//                                    R.drawable.mic_img_6,
-//                                    R.drawable.mic_img_7,
-//                                    R.drawable.mic_img_8,
-//                                    R.drawable.mic_img_9,
-//                                    R.drawable.mic_img_10,
-//                                    R.drawable.mic_img_11,
-//                                    R.drawable.mic_img_12
-//                                )
-//
-//                                if (micVisibleState.value) {
-//                                    Box(
-//                                        modifier = Modifier.fillMaxSize(),
-//                                        contentAlignment = Alignment.BottomCenter // Ensures it appears at the bottom
-//                                    ) {
-//                                        MicPopup(
-//                                            text = text,
-//                                            genieResponse = genieResponse,
-//                                            animationFrames = animationFrames
-//                                        )
-//                                    }
-//                                }
-//
-//                            }
+                            floatingActionButton = {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    // Floating mic button
+                                    FloatingActionButton(
+                                        onClick = {
+                                            Log.d("MicButton", "Square Mic Button clicked!")
+                                            startRecorder()
+                                            micVisibleState.value =
+                                                true  // Show the translucent button
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(8.dp)
+                                            .border(
+                                                width = 1.dp,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                shape = RoundedCornerShape(12.dp)
+                                            ),
+                                        containerColor = MaterialTheme.colorScheme.secondary
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Mic,
+                                            contentDescription = "Mic Button",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+
+                                val animationFrames = listOf(
+                                    R.drawable.mic_img_1, // Replace with your actual drawable resources
+                                    R.drawable.mic_img_2,
+                                    R.drawable.mic_img_3,
+                                    R.drawable.mic_img_4,
+                                    R.drawable.mic_img_5,
+                                    R.drawable.mic_img_6,
+                                    R.drawable.mic_img_7,
+                                    R.drawable.mic_img_8,
+                                    R.drawable.mic_img_9,
+                                    R.drawable.mic_img_10,
+                                    R.drawable.mic_img_11,
+                                    R.drawable.mic_img_12
+                                )
+
+                                if (micVisibleState.value) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.BottomCenter // Ensures it appears at the bottom
+                                    ) {
+                                        MicPopup(
+                                            text = text,
+                                            genieResponse = genieResponse,
+                                            animationFrames = animationFrames
+                                        )
+                                    }
+                                }
+
+                            }
                         ) { innerPadding ->
                             Surface(
                                 color = MaterialTheme.colorScheme.background
@@ -545,171 +530,54 @@ class MainActivity : ComponentActivity() {
 
 }
 
-//@Composable
-//fun BottomNavigationBar(
-//    navController: NavHostController,
-//    items: List<String>,
-//    onMicClick: () -> Unit
-//) {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(80.dp)  // taller space to allow floating
-//    ) {
-//        NavigationBar(
-//            containerColor = MaterialTheme.colorScheme.background,
-//            tonalElevation = 0.dp,
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .navigationBarsPadding()
-//        ) {
-//            val currentRoute by navController.currentBackStackEntryFlow
-//                .map { it?.destination?.route ?: "Status" }
-//                .collectAsState(initial = "Status")
-//
-//            items.forEach { route ->
-//                val isSelected = currentRoute == route
-//                NavigationBarItem(
-//                    selected = isSelected,
-//                    onClick = {
-//                        if (!isSelected) {
-//                            navController.navigate(route) {
-//                                launchSingleTop = true
-//                                restoreState = true
-//                            }
-//                        }
-//                    },
-//                    icon = {
-//                        Icon(
-//                            imageVector = when (route) {
-//                                NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
-//                                NavRoute.ROVER_SETTINGS -> Icons.Default.Home
-//                                NavRoute.ADVANCE -> Icons.Default.MoreHoriz
-//                                else -> Icons.Default.Help
-//                            },
-//                            contentDescription = route,
-//                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    },
-//                    label = {
-//                        Text(
-//                            text = route,
-//                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    },
-//                    colors = NavigationBarItemDefaults.colors(
-//                        selectedIconColor = MaterialTheme.colorScheme.primary,
-//                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                        selectedTextColor = MaterialTheme.colorScheme.primary,
-//                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-//                        indicatorColor = MaterialTheme.colorScheme.background
-//                    )
-//                )
-//            }
-//        }
-//
-//        // Mic Button floating
-//        Box(
-//            modifier = Modifier
-//                .size(72.dp)
-//                .align(Alignment.TopCenter)
-//                .offset(y = (-24).dp)
-//                .background(
-//                    color = MaterialTheme.colorScheme.secondary,
-//                    shape = RoundedCornerShape(50)
-//                )
-//                .border(
-//                    width = 2.dp,
-//                    color = MaterialTheme.colorScheme.primary,
-//                    shape = RoundedCornerShape(50)
-//                )
-//                .clickable { onMicClick() },
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Icon(
-//                imageVector = Icons.Filled.Mic,
-//                contentDescription = "Voice Input",
-//                tint = MaterialTheme.colorScheme.primary
-//            )
-//        }
-//    }
-//}
-
 @Composable
-fun BottomNavigationBar(
-    navController: NavHostController,
-    items: List<String>,
-    startRecorder: () -> Unit,
-    micVisibleState: MutableState<Boolean>,
-    text: MutableState<String>,
-    genieResponse: MutableState<String>
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
+fun BottomNavigationBar(navController: NavHostController, items: List<String>) {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.background,
+        tonalElevation = 0.dp
     ) {
-        NavigationBar(
-            containerColor = MaterialTheme.colorScheme.background,
-            tonalElevation = 0.dp,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            val currentRoute by navController.currentBackStackEntryFlow
-                .map { it?.destination?.route ?: "Status" }
-                .collectAsState(initial = "Status")
-
-            items.forEach { route ->
-                val isSelected = currentRoute == route
-                NavigationBarItem(
-                    selected = isSelected,
-                    onClick = {
-                        if (!isSelected) {
-                            navController.navigate(route) {
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+        val currentRoute by navController.currentBackStackEntryFlow
+            .map { it?.destination?.route ?: "Status" }
+            .collectAsState(initial = "Status")
+        items.forEach { route ->
+            val isSelected = currentRoute == route
+            Log.d("navbar", "$currentRoute, $route, $isSelected");
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = {
+                    if (!isSelected) {
+                        navController.navigate(route) {
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = when (route) {
-                                NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
-                                NavRoute.ROVER_SETTINGS -> Icons.Default.Home
-                                NavRoute.ADVANCE -> Icons.Default.MoreHoriz
-                                else -> Icons.Default.Help
-                            },
-                            contentDescription = route,
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    label = {
-                        Text(
-                            text = route,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                        indicatorColor = MaterialTheme.colorScheme.background
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = when (route) {
+                            NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
+                            NavRoute.ROVER_SETTINGS -> Icons.Default.Home
+                            NavRoute.ADVANCE -> Icons.Default.MoreHoriz
+                            else -> Icons.Default.Help // Default case
+                        },
+                        contentDescription = route,
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                )
-            }
-        }
+                },
+                label = {
+                    Text(
+                        text = route,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
 
-        // Now use MicButton
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .offset(y = (-24).dp)
-        ) {
-            MicButton(
-                startRecorder = startRecorder,
-                micVisibleState = micVisibleState,
-                text = text,
-                genieResponse = genieResponse
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.background // Prevents background change
+                )
             )
         }
     }
@@ -721,64 +589,6 @@ fun BottomNavigationBar(
 fun DefaultPreview() {
     ChatGPTLiteTheme {
     }
-}
-
-@Composable
-fun MicButton(
-    startRecorder: () -> Unit,
-    micVisibleState: MutableState<Boolean>,
-    text: MutableState<String>,
-    genieResponse: MutableState<String>
-) {
-    val animationFrames = listOf(
-        R.drawable.mic_img_1,
-        R.drawable.mic_img_2,
-        R.drawable.mic_img_3,
-        R.drawable.mic_img_4,
-        R.drawable.mic_img_5,
-        R.drawable.mic_img_6,
-        R.drawable.mic_img_7,
-        R.drawable.mic_img_8,
-        R.drawable.mic_img_9,
-        R.drawable.mic_img_10,
-        R.drawable.mic_img_11,
-        R.drawable.mic_img_12
-    )
-
-    Box(
-        modifier = Modifier
-            .size(72.dp)
-            .background(
-                color = MaterialTheme.colorScheme.secondary,
-                shape = RoundedCornerShape(50)
-            )
-            .border(
-                width = 2.dp,
-                color = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(50)
-            )
-            .clickable {
-                Log.d("MicButton", "Mic Button clicked from composable!")
-                startRecorder()
-                micVisibleState.value = true
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.Mic,
-            contentDescription = "Voice Input",
-            tint = MaterialTheme.colorScheme.primary
-        )
-    }
-
-//    if (micVisibleState.value) {
-//        MicPopup(
-//            text = text,
-//            genieResponse = genieResponse,
-//            animationFrames = animationFrames
-//        )
-//    }
-
 }
 
 @Composable
@@ -829,7 +639,11 @@ fun MicPopup(
                                 color = Color.Black,
                                 shape = RoundedCornerShape(24.dp)
                             )
-                            .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(24.dp))
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(24.dp)
+                            )
                             .padding(12.dp)
                     ) {
                         Text(
@@ -891,11 +705,19 @@ fun MicPopup(
                                     color = Color.Black,
                                     shape = RoundedCornerShape(24.dp)
                                 )
-                                .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(24.dp))
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary,
+                                    shape = RoundedCornerShape(24.dp)
+                                )
                                 .padding(12.dp)
                         ) {
                             Text(
-                                text = if (genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                                text = if (genieResponse.value.contains(
+                                        "Sorry",
+                                        ignoreCase = true
+                                    )
+                                ) {
                                     genieResponse.value
                                 } else {
                                     "Can you confirm the command:\n${genieResponse.value}"
