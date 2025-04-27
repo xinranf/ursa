@@ -375,8 +375,8 @@ class MainActivity : ComponentActivity() {
                     // Bottom navigation bar
                     val bottomNavItems = listOf(
                         NavRoute.VIDEO_STREAM,
-                        NavRoute.ROVER_SETTINGS,
-                        NavRoute.ADVANCE
+                        NavRoute.ADVANCE,
+                        NavRoute.ROVER_SETTINGS
                     )
 
                     // Intercepts back navigation when the drawer is open
@@ -547,7 +547,7 @@ fun BottomNavigationBar(
                 NavigationBarItem(
                     selected = isSelected,
                     onClick = {
-                        if (!isSelected) {
+                        if (route != NavRoute.ADVANCE && !isSelected) {
                             navController.navigate(route) {
                                 launchSingleTop = true
                                 restoreState = true
@@ -555,22 +555,26 @@ fun BottomNavigationBar(
                         }
                     },
                     icon = {
-                        Icon(
-                            imageVector = when (route) {
-                                NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
-                                NavRoute.ROVER_SETTINGS -> Icons.Default.Home
-                                NavRoute.ADVANCE -> Icons.Default.MoreHoriz
-                                else -> Icons.Default.Help
-                            },
-                            contentDescription = route,
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (route != NavRoute.ADVANCE) {
+                            Icon(
+                                imageVector = when (route) {
+                                    NavRoute.VIDEO_STREAM -> Icons.Default.ControlCamera
+                                    NavRoute.ROVER_SETTINGS -> Icons.Default.Home
+                                    NavRoute.ADVANCE -> Icons.Default.MoreHoriz
+                                    else -> Icons.Default.Help
+                                },
+                                contentDescription = route,
+                                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     },
                     label = {
-                        Text(
-                            text = route,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (route != NavRoute.ADVANCE) {
+                            Text(
+                                text = route,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = MaterialTheme.colorScheme.primary,
