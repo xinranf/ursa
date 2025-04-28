@@ -634,34 +634,113 @@ fun MicPopup(
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.background.copy(alpha = 0f),
-                        MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
                         MaterialTheme.colorScheme.background.copy(alpha = 1f)
                     )
                 )
             ),
         contentAlignment = Alignment.Center
     ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 20.dp)
+        ) {
+            ListeningAnimation(animationFrames, currentFrameIndex.value)
+        }
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 190.dp), // above the mic animation
+            verticalArrangement = Arrangement.Bottom
         ) {
             if (text.value.isNotEmpty()) {
-                UserInputBox(text.value)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    MessageBubble(
+                        message = text.value,
+                        textColor = Color.White,
+                        alignment = Alignment.CenterEnd
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             if (genieResponse.value.isNotBlank()) {
-                GenieResponseBox(
-                    genieResponse = genieResponse,
-                    text = text
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    MessageBubble(
+                        message = if (genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                            genieResponse.value
+                        } else {
+                            "Can you confirm the command:\n${genieResponse.value}"
+                        },
+                        textColor = MaterialTheme.colorScheme.primary,
+                        alignment = Alignment.CenterStart
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
+                    ConfirmCancelButtons(
+                        onConfirm = {
+                            text.value = ""
+                            genieResponse.value = ""
+                        },
+                        onCancel = {
+                            text.value = ""
+                            genieResponse.value = ""
+                        }
+                    )
+                } else {
+                    LaunchedEffect(Unit) {
+                        delay(1000)
+                        text.value = ""
+                        genieResponse.value = ""
+                    }
+                }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            ListeningAnimation(animationFrames, currentFrameIndex.value)
+@Composable
+fun MessageBubble(
+    message: String,
+    textColor: Color,
+    alignment: Alignment
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 280.dp) // limit width to look clean
+                .align(alignment)
+                .background(
+                    color = Color.Black,
+                    shape = RoundedCornerShape(24.dp)
+                )
+                .border(
+                    1.dp,
+                    if (textColor == Color.White) Color.White else MaterialTheme.colorScheme.primary,
+                    RoundedCornerShape(24.dp)
+                )
+                .padding(12.dp)
+        ) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor,
+                textAlign = TextAlign.Start
+            )
         }
     }
 }
@@ -788,7 +867,7 @@ private fun ListeningAnimation(
         painter = painterResource(id = animationFrames[frameIndex]),
         contentDescription = "Listening Animation",
         modifier = Modifier
-            .size(120.dp)
+            .size(150.dp)
             .background(Color.Transparent)
     )
 }
