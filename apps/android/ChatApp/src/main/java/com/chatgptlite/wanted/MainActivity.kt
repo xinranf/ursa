@@ -664,10 +664,31 @@ fun MicPopup(
     onCancel: () -> Unit
 ) {
     val currentFrameIndex = remember { mutableStateOf(0) }
+    val showConfirmButtons = remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         while (true) {
             delay(200)
             currentFrameIndex.value = (currentFrameIndex.value + 1) % animationFrames.size
+        }
+    }
+
+    LaunchedEffect(genieResponse.value) {
+        if (genieResponse.value.contains("sorry", ignoreCase = true)) {
+            delay(3000)
+            text.value = ""
+            genieResponse.value = ""
+            onCancel()
+        }
+    }
+
+    LaunchedEffect(genieResponse.value) {
+        if (genieResponse.value.isBlank() || genieResponse.value.contains("sorry", ignoreCase = true)) return@LaunchedEffect
+
+        val lastSnapshot = genieResponse.value
+        delay(500) // wait a bit to see if it's done updating
+        if (genieResponse.value == lastSnapshot) {
+            showConfirmButtons.value = true
         }
     }
 
@@ -734,17 +755,20 @@ fun MicPopup(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
-                    ConfirmCancelButtons(
-                        onConfirm = onConfirm,
-                        onCancel = onCancel
-                    )
-                } else {
-                    LaunchedEffect(Unit) {
-                        delay(1000)
-                        text.value = ""
-                        genieResponse.value = ""
+                    if (showConfirmButtons.value) {
+                        ConfirmCancelButtons(
+                            onConfirm = onConfirm,
+                            onCancel = onCancel
+                        )
                     }
                 }
+//               else {
+//                    LaunchedEffect(Unit) {
+//                        delay(5000)
+//                        text.value = ""
+//                        genieResponse.value = ""
+//                    }
+//                }
             }
         }
     }
@@ -784,84 +808,6 @@ fun MessageBubble(
     }
 }
 
-@Composable
-private fun UserInputBox(userText: String) {
-    MessageBox(
-        message = userText,
-        textColor = Color.White,
-        alignment = Alignment.CenterEnd
-    )
-}
-
-@Composable
-private fun GenieResponseBox(
-    genieResponse: MutableState<String>,
-    text: MutableState<String>
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        MessageBox(
-            message = if (genieResponse.value.contains("Sorry", ignoreCase = true)) {
-                genieResponse.value
-            } else {
-                "Can you confirm the command:\n${genieResponse.value}"
-            },
-            textColor = MaterialTheme.colorScheme.primary,
-            alignment = Alignment.CenterStart
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
-            ConfirmCancelButtons(onConfirm = {
-                text.value = ""
-                genieResponse.value = ""
-            }, onCancel = {
-                text.value = ""
-                genieResponse.value = ""
-            })
-        } else {
-            LaunchedEffect(Unit) {
-                delay(1000)
-                text.value = ""
-                genieResponse.value = ""
-            }
-        }
-    }
-}
-
-@Composable
-private fun MessageBox(
-    message: String,
-    textColor: Color,
-    alignment: Alignment
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentWidth()
-            .padding(horizontal = 16.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(280.dp)
-                .align(alignment)
-                .background(Color.Black, RoundedCornerShape(24.dp))
-                .border(
-                    1.dp,
-                    if (textColor == Color.White) Color.White else MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(24.dp)
-                )
-                .padding(12.dp)
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = textColor,
-                textAlign = TextAlign.Start
-            )
-        }
-    }
-}
 
 @Composable
 private fun ConfirmCancelButtons(
