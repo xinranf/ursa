@@ -179,11 +179,37 @@ class MainActivity : ComponentActivity() {
                     Log.d("foreground", "Recorder stopped. Restarting background recorder...")
                     isForegroundRecording.value = true
                     updateForegroundRecordingSignal(false)
-                    delay(10000) // how long the popup will stay
-                    micVisibleState.value = false
-                    text.value = ""
-                    break
+//                    delay(10000) // how long the popup will stay
+//                    micVisibleState.value = false
+//                    text.value = ""
+//                    break
                 }
+            }
+        }
+    }
+
+    private fun sendGenieCommandToRover(command: String, addr: String, port: String) {
+        val TAG = "sendGenieCommandToRover"
+        val textToSend = command.trim()
+
+        if (textToSend.isBlank()) {
+            Log.e(TAG, "Empty command received, not sending.")
+            return
+        }
+
+        Log.d(TAG, "Sending dynamic command to rover: $textToSend")
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                mainViewModel.setRoverState("Executing")
+                val response = sendMessage(addr, port, textToSend)
+                if (response.isSuccessful) {
+                    Log.d(TAG, "Command executed successfully: $textToSend")
+                } else {
+                    Log.e(TAG, "Failed to execute command: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error sending command: ${e.message}", e)
             }
         }
     }
@@ -484,7 +510,24 @@ class MainActivity : ComponentActivity() {
                                 MicPopup(
                                     text = text,
                                     genieResponse = genieResponse,
-                                    animationFrames = animationFrames
+                                    animationFrames = animationFrames,
+                                    onConfirm = {
+                                        val addr = "10.0.0.120"
+                                        val port = "8000"
+                                        sendGenieCommandToRover(genieResponse.value, addr, port)
+                                        text.value = ""
+                                        genieResponse.value = ""
+                                        micVisibleState.value = false
+                                        isForegroundRecording.value = false
+                                        updateForegroundRecordingSignal(false)
+                                    },
+                                    onCancel = {
+                                        text.value = ""
+                                        genieResponse.value = ""
+                                        micVisibleState.value = false
+                                        isForegroundRecording.value = false
+                                        updateForegroundRecordingSignal(false)
+                                    }
                                 )
                             }
                         }
@@ -616,7 +659,9 @@ fun MicButton(
 fun MicPopup(
     text: MutableState<String>,
     genieResponse: MutableState<String>,
-    animationFrames: List<Int>
+    animationFrames: List<Int>,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
 ) {
     val currentFrameIndex = remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
@@ -690,14 +735,8 @@ fun MicPopup(
 
                 if (!genieResponse.value.contains("Sorry", ignoreCase = true)) {
                     ConfirmCancelButtons(
-                        onConfirm = {
-                            text.value = ""
-                            genieResponse.value = ""
-                        },
-                        onCancel = {
-                            text.value = ""
-                            genieResponse.value = ""
-                        }
+                        onConfirm = onConfirm,
+                        onCancel = onCancel
                     )
                 } else {
                     LaunchedEffect(Unit) {
@@ -833,9 +872,9 @@ private fun ConfirmCancelButtons(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        ConfirmButton(text = "Confirm", onClick = onConfirm)
-        Spacer(modifier = Modifier.width(32.dp))
         ConfirmButton(text = "Cancel", onClick = onCancel)
+        Spacer(modifier = Modifier.width(32.dp))
+        ConfirmButton(text = "Confirm", onClick = onConfirm)
     }
 }
 
