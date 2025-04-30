@@ -144,6 +144,7 @@ fun VideoStreamingSetting(
 
                                 setOnMoveListener { angle, strength ->
                                     // onHorizontalMove(angle, strength)
+                                    viewModel.controlRover(0.0,0.0)
                                 }
                             }
                         },
@@ -196,6 +197,7 @@ fun VideoStreamingSetting(
 
                                 setOnMoveListener { angle, strength ->
                                     // onVerticalMove(angle, strength)
+                                    viewModel.controlRover(0.0,0.0)
                                 }
                             }
                         },
