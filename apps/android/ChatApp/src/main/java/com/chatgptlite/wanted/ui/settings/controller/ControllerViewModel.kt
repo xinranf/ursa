@@ -110,7 +110,7 @@ class VideoCamSettingsViewModel(application: Application) : AndroidViewModel(app
         val controlMessage = """
         {
             "op": "publish",
-            "topic": "/cmd_vel",
+            "topic": "/cmd_vel_nav",
             "msg": {
                 "linear": {
                     "x": $x,

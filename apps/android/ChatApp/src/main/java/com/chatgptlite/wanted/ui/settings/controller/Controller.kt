@@ -69,6 +69,8 @@ fun VideoStreamingSetting(
         mutableStateOf("/stream?topic=/camera/image_raw&type=ros_compressed")
     }
 
+    var MAX_ANGULAR_VELOCITY = 1.2
+    var MAX_VELOCITY = 1
     LaunchedEffect(Unit) {
         val config = viewModel.loadConfig()
         config?.let {
@@ -143,8 +145,18 @@ fun VideoStreamingSetting(
                                 setButtonSizeRatio(0.2f)
 
                                 setOnMoveListener { angle, strength ->
+                                    Log.d("Joystick", "Angle: $angle, Strength: $strength")
+                                    // int angle, int strength
+                                    // max strength = 100
                                     // onHorizontalMove(angle, strength)
-                                    viewModel.controlRover(0.0,0.0)
+                                    val angularVelocity = MAX_ANGULAR_VELOCITY * strength / 100.0
+                                    if (angle == 180) {
+                                        viewModel.controlRover(0.0, angularVelocity)
+                                    } else {
+                                        viewModel.controlRover(0.0,  -angularVelocity)
+                                    }
+
+
                                 }
                             }
                         },
@@ -196,9 +208,20 @@ fun VideoStreamingSetting(
                                 setButtonSizeRatio(0.2f)
 
                                 setOnMoveListener { angle, strength ->
-                                    // onVerticalMove(angle, strength)
-                                    viewModel.controlRover(0.0,0.0)
+                                    Log.d("Joystick", "Angle: $angle, Strength: $strength")
+
+                                    // Convert strength (0–100) to velocity scale (e.g., max 1.0)
+                                    val velocity = MAX_VELOCITY * strength / 100.0
+
+                                    if (angle == 90) {
+                                        // Move forward
+                                        viewModel.controlRover(velocity, 0.0)
+                                    } else if (angle == 270) {
+                                        // Move backward
+                                        viewModel.controlRover(-velocity, 0.0)
+                                    }
                                 }
+
                             }
                         },
                         modifier = Modifier.fillMaxSize()
