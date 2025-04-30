@@ -692,6 +692,15 @@ fun MicPopup(
         }
     }
 
+    LaunchedEffect(text.value) {
+        if (genieResponse.value.contains("sorry", ignoreCase = true)) {
+            delay(3000)
+            text.value = ""
+            genieResponse.value = ""
+            onCancel()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
