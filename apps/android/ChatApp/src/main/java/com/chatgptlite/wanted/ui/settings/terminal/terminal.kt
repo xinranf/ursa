@@ -1,5 +1,6 @@
 package com.chatgptlite.wanted.ui.settings.terminal
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState

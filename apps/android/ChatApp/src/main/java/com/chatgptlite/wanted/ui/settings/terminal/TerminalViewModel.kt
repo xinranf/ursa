@@ -62,14 +62,18 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
     fun sendPing(ipAddress: String) {
         viewModelScope.launch {
             try {
+                Log.d("Terminal", "launching sendPing function")
                 val (ip, port) = ipAddress.split(":")
                 val response = com.chatgptlite.wanted.helpers.sendPing(ip, port)
                 if (response.isSuccessful) {
+                    Log.d("Terminal", "sendPing successful")
                     _pingResult.value = "Ping successful"
                 } else {
+                    Log.d("Terminal", "sendPing has error")
                     _pingResult.value = "Error sending ping: ${response.message()}"
                 }
             } catch (e: Exception) {
+                Log.d("Terminal", "sendPing has error [${e.message}]")
                 _pingResult.value = "Error sending ping: [${e.message}]"
             }
         }
@@ -82,6 +86,7 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
         } else ipAddress
         viewModelScope.launch {
             try {
+                Log.d("Terminal", "launching sendMessage function")
                 val (ip, port) = newIpAddress.split(":")
                 // url encode the textToSend
                 val encodedText = URLEncoder.encode(textToSend, StandardCharsets.UTF_8.toString())
@@ -89,16 +94,19 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 val response = com.chatgptlite.wanted.helpers.sendMessage(ip, port, encodedText)
 
                 if (response.isSuccessful) {
+                    Log.d("Terminal", "sendMessage successful")
                     val statusResponse = response.body()
                     _messageResult.value = "Message sent successfully. Server status: ${statusResponse?.status}. Request: ${statusResponse?.request}"
                     onSuccess?.invoke()
                 } else {
+                    Log.d("Terminal", "sendMessage failed")
                     val msg = "Error sending message: ${response.message()}"
                     _messageResult.value = msg
                     onFail?.invoke(msg)
                 }
             } catch (e: Exception) {
                 val msg = "Error sending message: ${e.message}"
+                Log.d("Terminal", "sendMessage failed, error [${msg}]")
                 _messageResult.value = msg
                 e.message?.let { onFail?.invoke(msg) }
             }
