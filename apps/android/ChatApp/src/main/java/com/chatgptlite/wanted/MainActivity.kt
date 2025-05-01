@@ -693,8 +693,10 @@ fun MicPopup(
     }
 
     LaunchedEffect(text.value) {
-        delay(5000)
-        if (text.value.isBlank()) {
+        if (genieResponse.value.contains("sorry", ignoreCase = true)){
+            delay(3000)
+//        delay(5000)
+//        if (text.value.isBlank()) {
             text.value = ""
             genieResponse.value = ""
             onCancel()
