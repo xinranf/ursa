@@ -25,9 +25,9 @@ Here are the commands you can generate:
 
 Examples:
 User input: "Hi rover, move forward by 1 meter." Output: ros2 run drive_pkg drive_publisher --ros-args -p x:=1
-User input: "turn right for 90 degrees and move forward by 2 meters." Output: ros2 run drive_pkg drive_publisher --ros-args -p x:=2 -p y:=-90
+User input: "turn left for 90 degrees and move forward by 2 meters." Output: ros2 run drive_pkg drive_publisher --ros-args -p x:=2 -p y:=90
 User input: "Hi rover, move backward by 2 meter." Output: ros2 run drive_pkg drive_publisher --ros-args -p x:=-2
-User input: "Please turn left, rover." Output:  ros2 run drive_pkg drive_publisher --ros-args -p y:=90
+User input: "Please turn right for 30 degrees, rover." Output:  ros2 run drive_pkg drive_publisher --ros-args -p y:=-30
 User input: "Can you return to base?" Output: ros2 topic pub /goal_pose geometry_msgs/PoseStamped \"{header: {stamp: {sec: 0}, frame_id: 'map'}, pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {w: 1.0}}}\" --once
 User input: "How are you?" Output: Sorry, I don't understand.
 
