@@ -10,10 +10,9 @@ plugins {
 
 // Path to local QNN SDK.
 // Download QNN SDK from https://qpm.qualcomm.com/#/main/tools/details/qualcomm_ai_engine_direct
-// Lisa: /Users/qhou11/Desktop/Berkeley/capstone/app_package/2.31.0.250130
+// Lisa: /Users/qhou11/Desktop/Desktop_Pro/Berkeley/capstone/app_package/2.31.0.250130
 // Shujie: /Users/shujiedeng/Desktop/chat_app_model_qnn/2.31.0.250130
-def qnnSDKLocalPath="/Users/qhou11/Desktop/Berkeley/capstone/app_package/2.31.0.250130"
-
+def qnnSDKLocalPath="/Users/qhou11/Desktop/Desktop_Pro/Berkeley/capstone/app_package/2.31.0.250130"
 // List of model assets
 def models = ["llama3_2_3b"]
 // Relative asset path for model configuration and binaries
@@ -167,12 +166,15 @@ dependencies {
     implementation 'androidx.navigation:navigation-compose:2.7.7'
     implementation "androidx.hilt:hilt-navigation-compose:1.0.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"
+    // implementation 'androidx.compose.material3:material3-android:1.3.2'
+    //implementation 'androidx.compose.material3:material3-android:1.3.2'
 
     // Compose
     def compose_version = "1.4.0"
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.1.0-beta01'
+    // implementation 'androidx.compose.material3:material3:1.1.0-beta01'
+    implementation 'androidx.compose.material3:material3:1.2.1'
     implementation 'androidx.compose.material:material-icons-extended:1.4.0'
     implementation 'androidx.compose.ui:ui-viewbinding:1.4.0'
     implementation 'androidx.compose.ui:ui-util:1.4.0'

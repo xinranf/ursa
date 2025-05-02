@@ -90,7 +90,6 @@ class TerminalViewModel(application: Application) : AndroidViewModel(application
                 val (ip, port) = newIpAddress.split(":")
                 // url encode the textToSend
                 val encodedText = URLEncoder.encode(textToSend, StandardCharsets.UTF_8.toString())
-
                 val response = com.chatgptlite.wanted.helpers.sendMessage(ip, port, encodedText)
 
                 if (response.isSuccessful) {
