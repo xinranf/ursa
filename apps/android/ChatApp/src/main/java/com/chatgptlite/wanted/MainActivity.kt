@@ -10,9 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.system.Os
 import android.util.Log
-import android.view.View
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -48,8 +45,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.chatgptlite.wanted.data.whisper.asr.IRecorderListener
 import com.chatgptlite.wanted.data.whisper.asr.IWhisperListener
 import com.chatgptlite.wanted.data.whisper.asr.Recorder
@@ -68,13 +63,11 @@ import com.chatgptlite.wanted.ui.settings.rover.TelemetryScreen
 import com.chatgptlite.wanted.ui.settings.rover.TelemetryViewModel
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalScreen
 import com.chatgptlite.wanted.ui.settings.terminal.TerminalViewModel
-import com.chatgptlite.wanted.ui.settings.video.VideoCamSettingsViewModel
-import com.chatgptlite.wanted.ui.settings.video.VideoStreamingSetting
+import com.chatgptlite.wanted.ui.settings.controller.VideoCamSettingsViewModel
+import com.chatgptlite.wanted.ui.settings.controller.VideoStreamingSetting
 import com.chatgptlite.wanted.ui.theme.ChatGPTLiteTheme
 import com.quicinc.chatapp.ChatMessage
 import com.quicinc.chatapp.GenieWrapper
-import com.quicinc.chatapp.MessageSender
-import com.quicinc.chatapp.Message_RecyclerViewAdapter
 import com.quicinc.chatapp.R
 import com.quicinc.chatapp.StringCallback
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,7 +79,6 @@ import java.io.IOException
 import java.io.OutputStream
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

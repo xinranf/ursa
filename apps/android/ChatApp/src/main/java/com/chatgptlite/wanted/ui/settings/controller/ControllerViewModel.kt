@@ -1,4 +1,4 @@
-package com.chatgptlite.wanted.ui.settings.video
+package com.chatgptlite.wanted.ui.settings.controller
 
 import android.app.Application
 import android.content.Context
@@ -110,7 +110,7 @@ class VideoCamSettingsViewModel(application: Application) : AndroidViewModel(app
         val controlMessage = """
         {
             "op": "publish",
-            "topic": "/cmd_vel",
+            "topic": "/cmd_vel_nav",
             "msg": {
                 "linear": {
                     "x": $x,

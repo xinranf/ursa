@@ -11,32 +11,25 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.chatgptlite.wanted.helpers.sendMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import okhttp3.OkHttpClient
 import okhttp3.WebSocket
 import okhttp3.Request
 
 import kotlinx.coroutines.*
 import com.chatgptlite.wanted.helpers.RoverWebSocketListener
-import com.chatgptlite.wanted.ui.settings.video.MjpegReader
-import com.google.common.util.concurrent.AtomicDouble
+import com.chatgptlite.wanted.ui.settings.controller.MjpegReader
 //import com.google.firebase.crashlytics.buildtools.reloc.com.google.common.util.concurrent.AtomicDouble
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.chatgptlite.wanted.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 class RoverSettingsViewModel(application: Application) : AndroidViewModel(application) {
 
