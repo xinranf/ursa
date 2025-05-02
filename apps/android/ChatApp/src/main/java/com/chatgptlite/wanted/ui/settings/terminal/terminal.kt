@@ -35,12 +35,6 @@ fun TerminalScreen(
     }
 
     Scaffold(
-//        topBar = {
-//            AppBar(
-//                title = "Terminal",
-//                onBackPressed = onBackPressed
-//            )
-//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -49,13 +43,6 @@ fun TerminalScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()) // Enable vertical scrolling
         ) {
-            Text(
-                text = "Terminal",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
             // IP Address and Port row
             Row(
                 modifier = Modifier.fillMaxWidth(),

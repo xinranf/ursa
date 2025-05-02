@@ -79,23 +79,22 @@ fun SettingsScreen(
     }
 
     Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Status",
-                        fontWeight = FontWeight.Bold,
-//                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                },
-                modifier = Modifier.height(80.dp).padding(top = 6.dp),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
+//        topBar = {
+//            CenterAlignedTopAppBar(
+//                title = {
+//                    Text(
+//                        text = "Status",
+//                        fontWeight = FontWeight.Bold,
+//                        textAlign = TextAlign.Center,
+//                        color = MaterialTheme.colorScheme.primary,
+//                    )
+//                },
+//                modifier = Modifier.height(80.dp).padding(top = 6.dp),
+//                colors = TopAppBarDefaults.topAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.background
+//                )
+//            )
+//        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -147,9 +146,6 @@ fun SettingsScreen(
                     TelemetryBlock("Coordinates (X, Y)", "$xCoordinate, $yCoordinate")
                     Spacer(modifier = Modifier.height(8.dp))
                     TelemetryBlock("Heading (W)", "$heading")
-//                    TelemetryBlock(title = "Battery") {
-//                        BatteryDisplay(battery)
-//                    }
                 }
             }
         }

@@ -30,25 +30,6 @@ fun AdvanceScreen(
     onLLMSettingClick: () -> Unit
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "Advance",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically),
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                },
-                modifier = Modifier.height(80.dp), // Reduce top bar height
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
     ) { innerPadding ->
         Column(
             modifier = Modifier

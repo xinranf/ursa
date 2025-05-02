@@ -35,10 +35,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ArrowBack
+
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -278,6 +281,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -389,7 +393,15 @@ class MainActivity : ComponentActivity() {
                 consumeWindowInsets = false
                 setContent {
                     val navController = rememberNavController()
-
+                    val currentBackStack by navController.currentBackStackEntryFlow.collectAsState(initial = null)
+                    val currentRoute = currentBackStack?.destination?.route ?: NavRoute.ROVER_SETTINGS
+                    val currentTitle = when (currentRoute) {
+                        NavRoute.ROVER_SETTINGS -> "Status"
+                        NavRoute.VIDEO_STREAM -> "Controller"
+                        NavRoute.ADVANCE -> "Advance"
+                        "terminal" -> "Terminal"
+                        else -> ""
+                    }
                     // Bottom navigation bar
                     val bottomNavItems = listOf(
                         NavRoute.VIDEO_STREAM,
@@ -423,6 +435,49 @@ class MainActivity : ComponentActivity() {
                             )
 
                             Scaffold(
+                                topBar = {
+                                    CenterAlignedTopAppBar(
+                                        title = {
+                                            Text(
+                                                text = currentTitle,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        },
+                                        navigationIcon = {
+                                            if (currentRoute == "terminal") {
+                                                IconButton(onClick = { navController.navigateUp() }) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.ArrowBack, // This shows the "<" icon
+                                                        contentDescription = "Back",
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        actions = {
+                                            if (currentRoute != "terminal") {
+                                                IconButton(onClick = {
+                                                    navController.navigate(NavRoute.ADVANCE)
+                                                }) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.MoreHoriz,
+                                                        contentDescription = "More Settings",
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .height(80.dp)
+                                            .padding(top = 6.dp),
+                                        colors = TopAppBarDefaults.topAppBarColors(
+                                            containerColor = MaterialTheme.colorScheme.background
+                                        )
+                                    )
+
+                                },
                                 bottomBar = {
                                     BottomNavigationBar(
                                         navController = navController,
@@ -457,21 +512,9 @@ class MainActivity : ComponentActivity() {
                                                 onBackPressed = { navController.navigateUp() }
                                             )
                                         }
-                                        composable(NavRoute.OCCUPANCY) {
-                                            Occupancy(
-                                                viewModel<OccupancyViewModel>(),
-                                                onBackPressed = { navController.navigateUp() }
-                                            )
-                                        }
                                         composable(NavRoute.VIDEO_STREAM) {
                                             VideoStreamingSetting(
                                                 viewModel<VideoCamSettingsViewModel>(),
-                                                onBackPressed = { navController.navigateUp() }
-                                            )
-                                        }
-                                        composable(NavRoute.TELEMETRY) {
-                                            TelemetryScreen(
-                                                viewModel<TelemetryViewModel>(),
                                                 onBackPressed = { navController.navigateUp() }
                                             )
                                         }
