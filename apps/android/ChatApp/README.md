@@ -1,15 +1,4 @@
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-    <img src="assets/ursa_logo.jpg" alt="Logo" width="80" height="80">
 
-  <h3 align="center">Ursa</h3>
-
-  <p align="center">
-    From Speech to Action: Voice Enabled Rover Control App using Large Language Model Agent
-    <br />
-  </p>
-</div>
 
 # Demo
 
