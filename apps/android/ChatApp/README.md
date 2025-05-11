@@ -25,8 +25,8 @@ This app **requires Android 15** and **does not run on all Android 14 consumer d
 ### Tools and SDK
 
 - Android Studio (version 2023.1.1 or newer)
-- Access to [google drive folder](https://drive.google.com/drive/u/3/folders/1NxGWSq7-jmqbufWJBaY9LnsQNcMQu0Sp)
-
+- Access to the required model files and configs:
+    [Google Drive Folder](https://drive.google.com/drive/u/3/folders/1NxGWSq7-jmqbufWJBaY9LnsQNcMQu0Sp)
 
 ## Setup Instructions
 
@@ -36,11 +36,11 @@ This app **requires Android 15** and **does not run on all Android 14 consumer d
 git clone https://github.com/xinranf/ursa.git
 cd ursa/apps/android/ChatApp
 ```
-Make sure to cd into ChatApp
+All following paths assume you are in the ChatApp directory.
 
 ### Step 2. Download Required Assets
 
-Download and place the following in `src/main/assets/`:
+Download the following files from the [Google Drive Folder](https://drive.google.com/drive/u/3/folders/1NxGWSq7-jmqbufWJBaY9LnsQNcMQu0Sp):
 
 #### Whisper Models
 
@@ -51,7 +51,7 @@ Download and place the following in `src/main/assets/`:
 #### Llama 3.2-3B Model
 
 - Download the three `.bin` files from `llama_3_2_3b` folder
-- Place them under `src/main/assets/models/llama_3_2_3b`
+- Place them into `src/main/assets/models/llama_3_2_3b`
 
 **Resulting folder layout:**
 
@@ -59,7 +59,7 @@ Download and place the following in `src/main/assets/`:
 src/main/assets/
 ├── htp_config/
 ├── models/
-│   └── llama3_2_3b/
+│   └── llama_3_2_3b/
 │       ├── *.bin
 │       ├── genie-config.json
 │       └── tokenizer.json
@@ -72,11 +72,11 @@ src/main/assets/
 - Extract it locally
 - Edit `ChatApp/build.gradle`:
 ```
-def qnnSDKLocalPath = “[your/local/path/to/qnn/sdk]”
+def qnnSDKLocalPath = "[your/local/path/to/qnn/sdk]"
 ```
 Example:
 ```
-def qnnSDKLocalPath = “/opt/qcom/aistack/qairt/2.31.0.250130”
+def qnnSDKLocalPath = "/opt/qcom/aistack/qairt/2.31.0.250130"
 ```
 
 ### Step 4. Update Build Configuration
@@ -84,7 +84,7 @@ def qnnSDKLocalPath = “/opt/qcom/aistack/qairt/2.31.0.250130”
 In `apps/android/build.gradle`:
 ```
 plugins {
-id ‘com.android.application’ version ‘8.6.1’
+id 'com.android.application' version '8.6.1'
 }
 ```
 Then in Android Studio:
