@@ -99,7 +99,19 @@ Then in Android Studio:
 2. Run **Gradle Sync**
 3. Build `ChatApp` target:
    - **Build → Build Bundle(s) / APK(s) → Build APK(s)**
+4. Run 'ChatApp'
 
+## Running on Device
+
+After installing the APK on your Android 15 device, ensure the app has the necessary runtime permissions to function correctly.
+
+### Grant Microphone Permission
+
+Navigate to `Settings → Apps & Notifications → Ursa → Permissions → Microphone`
+
+Then select `Allow only while using the app`
+
+This is required for the voice control feature to work. Without microphone access, the app will not activate voice input or transcription.
 
 ## License
 
