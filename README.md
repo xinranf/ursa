@@ -1,76 +1,62 @@
-[![Qualcomm® AI Hub Apps](https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/quic-logo.jpg)](https://aihub.qualcomm.com)
+<p float="left">
+  <!-- <img src="apps/android/ChatApp/assets/ursa_logo.jpg" alt= "ursa logo" width="100"/> -->
+  <img src="apps/android/ChatApp/assets/eecs_logo.jpg" alt="Berkeley eecs logo" width="200" /> 
+  <img src="apps/android/ChatApp/assets/vive_logo.png" alt="Vive logo" width="100" />
+  <img src="apps/android/ChatApp/assets/qualcomm_logo.png" alt="Qualcomm logo" width="100">
+</p>
 
-# Qualcomm® AI Hub Apps
+# Ursa
 
-The Qualcomm® AI Hub Apps are a collection of sample apps and tutorials to help deploy machine learning models on Qualcomm® devices.
-
-Each app is designed to work with one or more models from [Qualcomm® AI Hub Models](https://aihub.qualcomm.com/).
-
-With this repository, you can...
-* Explore apps optimized for on-device deployment of various machine learning tasks.
-* View open-source app recipes for running [Qualcomm® AI Hub Models](https://aihub.qualcomm.com/) on local devices.
-* Find tutorials for end-to-end workflows
+An Android application that converts natural language user commands into machine code instructions for robotic control, leveraging an on-device large language model (LLM). This project employs the **LlaMA 3.2-3B** model and integrates Qualcomm’s [Chat App Demo](https://github.com/quic/ai-hub-apps/tree/main/apps/android/ChatApp). Sponsored by **Qualcomm**.
 
 ## Overview
 
-### Supported runtimes
-* [TensorFlow Lite](https://www.tensorflow.org/lite)
-* [ONNX](https://onnxruntime.ai/)
-* Genie SDK (Generative AI runtime on top of [Qualcomm® AI Engine Direct SDK](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk))
+This application enables voice-based natural language commands to be translated into robot control code (ROS2) through a fully offline, local LLM running on Android devices powered by Qualcomm hardware.
 
-### Supported Deployment Targets
-* Android 11 Red Velvet Cake & Newer, API v30+
-* Windows 11
+**Key Features**
+- Natural language to ROS2 code translation using LLaMA 3.2-3B and Whisper-tiny.en
+- On-device model inference with Qualcomm Genie runtime and AI Hub binaries
+- Manual and voice command input
+- Real-time telemetry, video streaming, and occupancy map display
+- Privacy-preserving and low-latency design
 
-### Supported compute units
-* CPU, GPU, NPU (includes [hexagon HTP](https://developer.qualcomm.com/hardware/qualcomm-innovators-development-kit/ai-resources-overview/ai-hardware-cores-accelerators))
+## System Architecture
 
-### Chipsets supported for NPU Acceleration
-* [Snapdragon 8 Elite](https://www.qualcomm.com/products/mobile/snapdragon/smartphones/snapdragon-8-series-mobile-platforms/snapdragon-8-elite-mobile-platform)
-* [Snapdragon 8 Gen 3](https://www.qualcomm.com/products/mobile/snapdragon/smartphones/snapdragon-8-series-mobile-platforms/snapdragon-8-gen-3-mobile-platform)
-* [Snapdragon 8 Gen 2](https://www.qualcomm.com/products/mobile/snapdragon/smartphones/snapdragon-8-series-mobile-platforms/snapdragon-8-gen-2-mobile-platform)
-* [Snapdragon 8 Gen 1](https://www.qualcomm.com/products/mobile/snapdragon/smartphones/snapdragon-8-series-mobile-platforms/snapdragon-8-gen-1-mobile-platform)
-* [Snapdragon 888/888+](https://www.qualcomm.com/products/mobile/snapdragon/smartphones/snapdragon-8-series-mobile-platforms/snapdragon-888-5g-mobile-platform)
-* ... and all other [Snapdragon® chipsets supported by the QAIRT SDK](https://docs.qualcomm.com/bundle/publicresource/topics/80-63442-50/overview.html#supported-snapdragon-devices)
+```plaintext
+[ Android UI: Voice/Text Input ]
+               ↓
+[ Whisper Model (STT) ]
+               ↓
+[ LLaMA 3.2-3B Inference (Genie Runtime) ]
+               ↓
+[ ROS2 Code Generation ]
+               ↓
+[ Rover Communication Layer ]
+```
 
-_Weight and activation type required for NPU Acceleration:_
-* Floating Point: FP16 (All Snapdragon® chipsets with Hexagon® Architecture v69 or newer)
-* Integer : INT8 (All Snapdragon® chipsets)
+## Technical Stack
 
-__NOTE: These apps will run without NPU acceleration on non-Snapdragon® chipsets.__
+**Frontend**: Kotlin/Java (Android Studio)  
+**Backend**:  
+- Whisper-tiny.en (speech-to-text)  
+- LLaMA 3.2-3B (natural language to code generation)  
+- Qualcomm Genie runtime for inference  
+- WebSocket for real-time rover telemetry  
+- HTTP streaming for video and sending commands
 
-## Getting Started with Apps
+**Hardware**: Qualcomm Snapdragon 8 Gen 3 / Snapdragon X Elite
 
-1. Search for your desired OS & app in [this folder](apps), or in the [app directory](#app-directory) at the bottom of this file.
 
-2. The README of the selected app will contain build & installation instructions.
+## Getting Started with the App
 
-## _Android_ App Directory
+Go to [apps/android/ChatApp](apps/android/ChatApp), and the README contains build & installation instructions.
 
-| Task | Language | Inference API | Special Tags |
-| -- | -- | -- | -- |
-| [ChatApp](apps/android/ChatApp) | Java/C++ | Genie SDK | LLM, GenAI |
-| [Image Classification](apps/android/ImageClassification) | Java | TensorFlow Lite |
-| [Semantic Segmentation](apps/android/SemanticSegmentation) |  Java | TensorFlow Lite | OpenCV, Live Camera Feed |
-| [Super Resolution](apps/android/SuperResolution) | Java | TensorFlow Lite |
-| [WhisperKit (Speech to Text)](https://github.com/argmaxinc/WhisperKitAndroid) | Various | TensorFlow Lite |
+## Attribution
 
-## _Windows_ App Directory
+Portions of the codebase and documentation are adapted from the Qualcomm Chat App Demo, including the LlAMA wrapper and Genie runtime integration guides. Modifications have been made to align with the project’s natural language to machine code conversion goals.
 
-| Task | Language | Inference API | Special Tags |
-| -- | -- | -- | -- |
-| [ChatApp](apps/windows/cpp/ChatApp) | C++ | Genie SDK | LLM, GenAI |
-| [Image Classification](apps/windows/cpp/Classification) | C++ | ONNX | OpenCV |
-| [Object Detection](apps/windows/cpp/ObjectDetection) | C++ | ONNX | OpenCV |
-| [Super Resolution](apps/windows/cpp/SuperResolution) | C++ | ONNX | OpenCV |
-| [Whisper Speech-to-Text](apps/windows/python/Whisper) | Python | ONNX |
-
-## _Tutorials_ Directory
-
-| Tutorial | Topic |
-| --- | --- |
-| [LLM on-device deployment](tutorials/llm_on_genie) | Exporting and deploying Large Language Model (LLM) using Genie SDK |
+All original Qualcomm copyrights and license terms apply.
 
 ## LICENSE
 
-Qualcomm® AI Hub Apps is licensed under BSD-3. See the [LICENSE file](../LICENSE).
+This project includes licensed components from Qualcomm Technologies, Inc. Qualcomm® AI Hub Apps is licensed under BSD-3. See the [LICENSE file](../LICENSE).

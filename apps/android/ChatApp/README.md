@@ -1,4 +1,16 @@
-[![Qualcomm® AI Hub Apps](https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/quic-logo.jpg)](https://aihub.qualcomm.com)
+<!-- PROJECT LOGO -->
+<br />
+<div align="center">
+    <img src="assets/ursa_logo.jpg" alt="Logo" width="80" height="80">
+
+  <h3 align="center">Ursa</h3>
+
+  <p align="center">
+    From Speech to Action: Voice Enabled Rover Control App using Large Language Model Agent
+    <br />
+    <a href="apps/android/ChatApp/assets/Ursa_demo.m4v">View Demo</a>
+  </p>
+</div>
 
 # Sample Chat App
 
