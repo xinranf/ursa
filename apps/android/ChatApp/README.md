@@ -8,9 +8,12 @@
   <p align="center">
     From Speech to Action: Voice Enabled Rover Control App using Large Language Model Agent
     <br />
-    <a href="apps/android/ChatApp/assets/Ursa_demo.m4v">View Demo</a>
   </p>
 </div>
+
+# Demo
+
+[![Watch the demo on YouTube](https://img.youtube.com/vi/QfCmIGPUlbI/0.jpg)](https://youtu.be/QfCmIGPUlbI)
 
 # Sample Chat App
 
